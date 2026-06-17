@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: hotail
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hotelsyme}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      leak-detection-threshold: 2000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+jwt:
+  secret: 9a2f982728d828d9c282b82e8218d281f28e28f28b28a28e282d8d82b28c2872f
+  expiration: 86400000 # 24 hours
