@@ -9,6 +9,10 @@ export const publicClient = {
     const res = await baseClient.get(`/api/hotels/byslug/${slug}`);
     return res.data;
   },
+  getHotelById: async (id: string) => {
+    const res = await baseClient.get(`/api/hotels/${id}`);
+    return res.data;
+  },
   getHotelRooms: async (hotelId: string) => {
     const res = await baseClient.get(`/api/hotels/${hotelId}/rooms`);
     return res.data;

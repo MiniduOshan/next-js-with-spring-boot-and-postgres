@@ -46,6 +46,58 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  
+  --color-brand: #00A67E;
+  --color-brand-hover: #008f6c;
+  --color-brand-light: #e6f6f2;
+  --color-yme-green: #22c55e;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 dark:bg-slate-700 rounded-full;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-600;
+  }
+
+  /* Points badge update animation */
+  .points-flash {
+    animation: pointsFlash 0.8s ease-out forwards;
+  }
+  .points-pop {
+    animation: pointsPop 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+}
+
+@keyframes pointsFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.8); transform: scale(1); }
+  30%  { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.35); transform: scale(1.12); }
+  60%  { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); transform: scale(1.06); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); transform: scale(1); }
+}
+
+@keyframes pointsPop {
+  0%   { transform: translateY(0); }
+  25%  { transform: translateY(-4px); }
+  50%  { transform: translateY(2px); }
+  75%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translate(-50%, 0); }
+  70%  { opacity: 1; transform: translate(-50%, -12px); }
+  100% { opacity: 0; transform: translate(-50%, -20px); }
 }
 
 :root {
@@ -127,4 +179,42 @@
   html {
     @apply font-sans;
   }
+}
+
+/* React DayPicker styling fixes for Dark Mode (v10 & legacy compatibility) */
+.rdp-root {
+  --rdp-accent-color: var(--color-brand) !important;
+  --rdp-accent-background-color: var(--color-brand-light) !important;
+  --rdp-day_button-border-radius: 9999px !important;
+}
+
+.dark .rdp-root {
+  --rdp-accent-background-color: rgba(0, 166, 126, 0.2) !important;
+  --rdp-range_middle-background-color: rgba(0, 166, 126, 0.2) !important;
+  --rdp-range_middle-color: white !important;
+}
+
+.dark .rdp-day_button:not([disabled]):hover {
+  background-color: var(--color-brand-hover) !important;
+  color: white !important;
+}
+
+.dark .rdp-day:not([disabled]):not(.rdp-selected):not(.rdp-day_selected) {
+  color: #e2e8f0 !important; /* slate-200 */
+}
+
+.rdp-day_selected:not([disabled]),
+.rdp-selected:not([disabled]) {
+  background-color: var(--color-brand) !important;
+  color: white !important;
+}
+.rdp-day_range_middle:not([disabled]),
+.rdp-range_middle:not([disabled]) {
+  background-color: var(--color-brand-light) !important;
+  color: var(--color-brand) !important;
+}
+.dark .rdp-day_range_middle:not([disabled]),
+.dark .rdp-range_middle:not([disabled]) {
+  background-color: rgba(0, 166, 126, 0.2) !important;
+  color: white !important;
 }
