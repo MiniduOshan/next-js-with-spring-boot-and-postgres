@@ -35,6 +35,8 @@ export default function Bookings() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBookingDetails, setSelectedBookingDetails] = useState<any | null>(null);
+  const [showDiscountInput, setShowDiscountInput] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState('');
 
   useEffect(() => {
     const isMockAllowed = user?.email?.toLowerCase() === "partner@yme.lk";
@@ -75,6 +77,38 @@ export default function Bookings() {
         }
       });
   }, [user?.email, activeHotel?._id]);
+
+  const handleSendDiscount = async (bookingId: string | number) => {
+    if (typeof bookingId !== 'string') {
+      toast.error("Discount offers are only available for real bookings.");
+      return;
+    }
+    if (!discountAmount.trim()) {
+      toast.error("Please enter a discount amount.");
+      return;
+    }
+
+    const toastId = toast.loading("Sending discount offer...");
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/offer-discount`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          discountAmount,
+          message: `The hotel has offered you a special discount of ${discountAmount} for your upcoming stay at ${activeHotel?.propertyName || 'our property'}.`
+        })
+      });
+      if (res.ok) {
+        toast.success("Discount offer sent to guest!", { id: toastId });
+        setShowDiscountInput(false);
+        setDiscountAmount('');
+      } else {
+        const errorData = await res.json();
+        console.error("Discount Error:", errorData);
+        toast.error(errorData.error || "Failed to send discount", { id: toastId });
+      }
+    } catch (err) { toast.error("Error sending discount", { id: toastId }); }
+  };
 
   const handleStatusChange = async (id: number | string, newStatus: string) => {
     // Optimistic update
@@ -385,10 +419,10 @@ export default function Bookings() {
       {selectedBookingDetails && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Booking Details</h3>
-              <button onClick={() => setSelectedBookingDetails(null)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
-                <X className="w-4 h-4" />
+              <button onClick={() => { setSelectedBookingDetails(null); setShowDiscountInput(false); setDiscountAmount(''); }} className="text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -417,15 +451,38 @@ export default function Bookings() {
                   {selectedBookingDetails.statusName}
                 </span>
               </div>
+
+              {showDiscountInput && (
+                <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800 space-y-3 animate-in slide-in-from-top-2 duration-300">
+                  <p className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider">Send Discount Offer</p>
+                  <input
+                    type="text"
+                    value={discountAmount}
+                    onChange={(e) => setDiscountAmount(e.target.value)}
+                    placeholder="e.g. 10% OFF or LKR 2,000"
+                    className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-amber-500/20"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setShowDiscountInput(false); setDiscountAmount(''); }}
+                      className="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleSendDiscount(selectedBookingDetails.id)}
+                      className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+                    >
+                      Send to Guest
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-wrap">
-              <button
-                onClick={() => setSelectedBookingDetails(null)}
-                className="px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-colors mr-auto"
-              >
-                Close
-              </button>
+              <button onClick={() => { setSelectedBookingDetails(null); setShowDiscountInput(false); }} className="px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-colors mr-auto">Close</button>
 
               {(selectedBookingDetails.statusName === 'Pending' || selectedBookingDetails.statusName === 'Confirmed') && activeRole !== 'cashier' && (
                 <button
@@ -434,6 +491,10 @@ export default function Bookings() {
                 >
                   Cancel Booking
                 </button>
+              )}
+
+              {selectedBookingDetails.statusName === 'Confirmed' && activeRole !== 'cashier' && !showDiscountInput && (
+                <button onClick={() => setShowDiscountInput(true)} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-colors">Offer Discount</button>
               )}
 
               {selectedBookingDetails.statusName === 'Pending' && (

@@ -6,7 +6,6 @@ import Link from "next/link";;
 import { Tag, MapPin, Calendar, ArrowRight, Building2, Ticket } from 'lucide-react';
 import { generateHotelSlug } from "@/lib/utils";
 import { toast } from 'sonner';
-import OfferDetailsModal from "@/components/OfferDetailsModal";
 
 interface Offer {
   _id: string;
@@ -34,9 +33,7 @@ interface Hotel {
 function PublicOffers() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedOfferData, setSelectedOfferData] = useState<{ offer: Offer, hotel: Hotel | null } | null>(null);
-
+  const [loading, setLoading] = useState(true); // Keep loading state
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -107,16 +104,22 @@ function PublicOffers() {
             {offers.map((offer) => {
               const hotel = getHotelForOffer(offer);
               const hotelName = hotel?.propertyName || "Verified Partner Hotel";
-              const hotelSlug = hotel ? generateHotelSlug({ id: hotel._id, name: hotel.propertyName, location: hotel.city }) : '';
+              // Ensure hotelData always has an ID and name/location for slug generation.
+              // If 'hotel' is null, use offer.hotelId as the ID.
+              const hotelDataForSlug = hotel ? { id: hotel._id, name: hotel.propertyName, location: hotel.city } : { id: offer.hotelId, name: 'Unknown Hotel', location: 'Sri Lanka' };
+              const hotelSlug = generateHotelSlug(hotelDataForSlug);
               const offerImage = offer.imageUrl || offer.image || hotel?.imageUrl || hotel?.image || "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&q=80";
 
+              const roomNameParam = offer.appliesTo === 'rooms' && offer.roomTypes?.length > 0
+                ? `&roomName=${encodeURIComponent(offer.roomTypes[0])}` // Take the first room type for scrolling
+                : '';
+
               return (
-                <div key={offer._id} className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all group flex flex-col">
+                <Link key={offer._id} href={`/hotel/${hotelSlug}?offerId=${offer._id}${roomNameParam}`} className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all group flex flex-col">
                   {/* Image Header */}
                   <div className="h-48 relative overflow-hidden">
                     <img src={offerImage} alt={hotelName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-
                     {/* Discount Badge */}
                     <div className="absolute top-4 right-4 bg-brand text-white font-black px-3 py-1.5 rounded-xl shadow-lg transform rotate-3 scale-110">
                       {offer.discount} OFF
@@ -153,28 +156,17 @@ function PublicOffers() {
                     </div>
 
                     {/* CTA */}
-                    <button
-                      onClick={() => setSelectedOfferData({ offer, hotel: hotel || null })}
-                      className="w-full py-3 bg-slate-100 hover:bg-brand hover:text-white dark:bg-slate-800 dark:hover:bg-brand text-slate-900 dark:text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
-                    >
+                    <div className="w-full py-3 bg-slate-100 hover:bg-brand hover:text-white dark:bg-slate-800 dark:hover:bg-brand text-slate-900 dark:text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2">
                       View & Claim Offer <ArrowRight className="w-4 h-4" />
-                    </button>
+                    </div>
                   </div>
-                </div>
+                </Link>
+
               );
             })}
           </div>
         )}
-
       </div>
-
-      {selectedOfferData && (
-        <OfferDetailsModal
-          offer={selectedOfferData.offer}
-          hotel={selectedOfferData.hotel}
-          onClose={() => setSelectedOfferData(null)}
-        />
-      )}
     </div>
   );
 }

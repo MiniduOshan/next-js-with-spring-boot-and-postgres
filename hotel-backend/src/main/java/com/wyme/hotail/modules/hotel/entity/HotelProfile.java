@@ -104,4 +104,8 @@ public class HotelProfile extends BaseEntity implements TenantSupport {
     @CollectionTable(name = "hotel_images", joinColumns = @JoinColumn(name = "hotel_profile_id"))
     @Column(name = "image_url")
     private List<String> images = new ArrayList<>();
+
+    @Convert(converter = HotelAreaInfoConverter.class)
+    @Column(name = "area_info", columnDefinition = "TEXT")
+    private HotelAreaInfo areaInfo;
 }

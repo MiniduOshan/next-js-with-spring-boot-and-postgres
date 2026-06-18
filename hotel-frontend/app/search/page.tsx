@@ -54,7 +54,10 @@ function SearchResults() {
   const [bidReqs, setBidReqs] = useState('');
   const [isBidding, setIsBidding] = useState(false);
   const [showBidInfo, setShowBidInfo] = useState(() => {
-    return localStorage.getItem('hasSeenBidInfo') !== 'true';
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hasSeenBidInfo') !== 'true';
+    }
+    return false;
   });
 
   const dismissBidInfo = (e: React.MouseEvent) => {

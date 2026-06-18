@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";;
 import { CalendarCheck, Heart, MapPin, Bell, ArrowRight, Sparkles, Star, Crown, Zap, Gift } from 'lucide-react';
@@ -8,10 +8,33 @@ import { useAuth } from "@/components/AuthContext";
 import { useSavedHotels } from "@/lib/useSavedHotels";
 import { format, parseISO } from 'date-fns';
 
+const planMeta: Record<string, { icon: React.ReactNode; label: string; colorClass: string; borderClass: string; bgClass: string }> = {
+  free: { icon: <Gift className="w-4 h-4" />, label: 'Free', colorClass: 'text-slate-600 dark:text-slate-300', borderClass: 'border-slate-200 dark:border-slate-700', bgClass: 'bg-slate-50 dark:bg-slate-800' },
+  pro: { icon: <Zap className="w-4 h-4" />, label: 'Pro', colorClass: 'text-brand', borderClass: 'border-brand/30 dark:border-brand/40', bgClass: 'bg-brand/5 dark:bg-brand/10' },
+  premium: { icon: <Crown className="w-4 h-4" />, label: 'Premium', colorClass: 'text-violet-600 dark:text-violet-400', borderClass: 'border-violet-300 dark:border-violet-600', bgClass: 'bg-violet-50 dark:bg-violet-900/20' },
+};
+
 function TravelerDashboardHome() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(true);
+  const [bookings, setBookings] = useState<any[]>([]);
+
+  const plan = user?.subscriptionPlan || 'free';
+
+  const bookingLimit =
+    plan === "premium"
+      ? Infinity
+      : plan === "pro"
+        ? 100
+        : 10;
+
+  const usedBookings = bookings.length;
+
+  const percentage =
+    plan === "premium"
+      ? 100
+      : Math.min((usedBookings / bookingLimit) * 100, 100);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -31,24 +54,26 @@ function TravelerDashboardHome() {
         console.error(err);
         setLoadingNotifs(false);
       });
+
+    fetch(`/api/bookings?guestEmail=${user.email}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setBookings(data);
+        }
+      })
+      .catch(console.error);
   }, [user?.email]);
 
   const { savedHotels } = useSavedHotels();
   const activeNotifsCount = notifications.filter(n => !n.read).length;
 
   const stats = [
-    { label: "Upcoming Trips", value: "2", icon: CalendarCheck, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-500/10" },
+    { label: "Upcoming Trips", value: String(bookings.filter(b => b.status === 'Confirmed' || b.status === 'Pending').length), icon: CalendarCheck, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-500/10" },
     { label: "Saved Hotels", value: String(savedHotels.length), icon: Heart, color: "text-rose-500 dark:text-rose-400", bg: "bg-rose-50 dark:bg-rose-500/10" },
     { label: "Unread Alerts", value: String(activeNotifsCount), icon: Bell, color: "text-amber-550 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
   ];
 
-  const planMeta: Record<string, { icon: React.ReactNode; label: string; colorClass: string; borderClass: string; bgClass: string }> = {
-    free:    { icon: <Gift className="w-4 h-4" />,  label: 'Free',    colorClass: 'text-slate-600 dark:text-slate-300', borderClass: 'border-slate-200 dark:border-slate-700', bgClass: 'bg-slate-50 dark:bg-slate-800' },
-    pro:     { icon: <Zap  className="w-4 h-4" />,  label: 'Pro',     colorClass: 'text-brand',                          borderClass: 'border-brand/30 dark:border-brand/40',   bgClass: 'bg-brand/5 dark:bg-brand/10' },
-    premium: { icon: <Crown className="w-4 h-4" />, label: 'Premium', colorClass: 'text-violet-600 dark:text-violet-400', borderClass: 'border-violet-300 dark:border-violet-600', bgClass: 'bg-violet-50 dark:bg-violet-900/20' },
-  };
-
-  const plan = user?.subscriptionPlan || 'free';
   const meta = planMeta[plan] || planMeta.free;
   const expiryDate = user?.subscriptionExpiry ? parseISO(user.subscriptionExpiry) : null;
   const isExpired = expiryDate ? expiryDate < new Date() : false;
@@ -68,33 +93,32 @@ function TravelerDashboardHome() {
           {meta.icon}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-black text-sm ${meta.colorClass}`}>{meta.label} Plan</span>
-            {!isExpired && expiryDate && (
-              <span className="text-[10px] font-bold bg-white dark:bg-slate-900 border border-current/20 px-2 py-0.5 rounded-full text-slate-500 dark:text-slate-400">
-                Active until {format(expiryDate, 'dd MMM yyyy')}
-              </span>
-            )}
-            {isExpired && (
-              <span className="text-[10px] font-bold bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 px-2 py-0.5 rounded-full">
-                Expired
+          <div className="flex items-center justify-between mb-2">
+            <span className={`font-black text-sm ${meta.colorClass}`}>
+              {meta.label} Plan
+            </span>
+
+            {plan !== "premium" && (
+              <span className="text-xs font-bold text-slate-500">
+                {usedBookings}/{bookingLimit} Bookings
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {plan === 'premium' ? 'Full access to all YME Hotels features and priority support.' :
-             plan === 'pro'     ? 'Up to 5 hotel listings with analytics and promotions.' :
-                                  'Basic listing for 1 hotel. Upgrade for more features.'}
+
+          <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-700"
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+
+          <p className="text-xs text-slate-500 mt-2">
+            {plan === "premium"
+              ? "Unlimited bookings available."
+              : `${bookingLimit - usedBookings} bookings remaining.`}
           </p>
         </div>
-        {plan !== 'premium' && (
-          <Link
-            href="/#pricing"
-            className="shrink-0 text-xs font-semibold bg-gradient-to-r from-violet-600 to-purple-700 text-white px-4 py-2 rounded-xl hover:opacity-90 transition-opacity"
-          >
-            Upgrade
-          </Link>
-        )}
+
       </div>
 
       {/* Overview Cards */}

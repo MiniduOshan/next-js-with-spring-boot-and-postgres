@@ -3,15 +3,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";;
-import { Search, MapPin, Calendar as CalendarIcon, Users, Star, CheckCircle, ShieldCheck, Zap, Heart, ArrowRight, Building2, TrendingUp, ChevronLeft, ChevronRight, Plus, Minus, X, Mail, Crown, Gift, CheckCircle2, Tag, Ticket, Sparkles, Send, BellRing, AlertCircle, Bed } from 'lucide-react';
+import { Search, MapPin, Calendar as CalendarIcon, Users, Star, CheckCircle, ShieldCheck, Zap, Heart, ArrowRight, Building2, TrendingUp, ChevronLeft, ChevronRight, Plus, Minus, X, Mail, Crown, Gift, CheckCircle2, Tag, Ticket, Sparkles, Send, BellRing, AlertCircle, Bed, XCircle, User, Check } from 'lucide-react';
 import { cn, generateHotelSlug } from "@/lib/utils";
 import { format, addDays, isBefore, startOfToday } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import { toast } from 'sonner';
 import { getCategories } from "@/lib/adminData";
+import { ALL_HOTELS } from "@/lib/hotelData"; // Keep this for getSearchResults
 import { getSystemPackages } from "@/lib/packagesData";
-import OfferDetailsModal from "@/components/OfferDetailsModal";
 import { useAuth } from "@/components/AuthContext";
 
 function Home() {
@@ -36,8 +36,8 @@ function HeroSection() {
   const [checkOut, setCheckOut] = useState<Date>(addDays(startOfToday(), 2));
   const [guests, setGuests] = useState(2);
   const [rooms, setRooms] = useState(1);
-  const [openDropdown, setOpenDropdown] = useState<'checkIn' | 'checkOut' | 'guests' | 'rooms' | null>(null);
-  
+  const [openDropdown, setOpenDropdown] = useState<'checkIn' | 'checkOut' | 'guests' | null>(null);
+
   // Bidding State
   const [showBidModal, setShowBidModal] = useState(false);
   const [bidBudget, setBidBudget] = useState('');
@@ -57,6 +57,7 @@ function HeroSection() {
     localStorage.setItem('hasSeenBidInfo', 'true');
   };
 
+  // Bid submission logic (kept as is)
   const handleBidSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -92,19 +93,6 @@ function HeroSection() {
     "98 Acres Resort",
   ];
 
-  const [loadedHotels, setLoadedHotels] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch('/api/hotels')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setLoadedHotels(data);
-        }
-      })
-      .catch(err => console.error("Error loading search suggestions:", err));
-  }, []);
-
   const getSearchResults = (query: string) => {
     const q = query.toLowerCase().trim();
     if (!q) {
@@ -112,13 +100,16 @@ function HeroSection() {
       return [
         { type: 'location' as const, name: 'Colombo', description: 'Colombo District, Sri Lanka', fillValue: 'Colombo' },
         { type: 'location' as const, name: 'Ella', description: 'Ella, Badulla District, Sri Lanka', fillValue: 'Ella' },
+        { type: 'hotel' as const, name: 'Marino Beach Colombo', description: 'Colombo, Colombo District, Sri Lanka', fillValue: 'Marino Beach Colombo' },
+        { type: 'hotel' as const, name: 'Heritance Kandalama', description: 'Kandalama, Dambulla, Sri Lanka', fillValue: 'Heritance Kandalama' },
+        { type: 'hotel' as const, name: '98 Acres Resort & Spa', description: 'Ella, Badulla District, Sri Lanka', fillValue: '98 Acres Resort & Spa' },
       ];
     }
 
     const results: { type: 'location' | 'hotel'; name: string; description: string; fillValue: string }[] = [];
 
     // 1. Match cities/districts
-    const cities = Array.from(new Set(loadedHotels.map(h => h.city || h.location).filter(Boolean)));
+    const cities = Array.from(new Set(ALL_HOTELS.map(h => h.location).filter(Boolean)));
     cities.forEach(city => {
       if (city.toLowerCase().includes(q)) {
         results.push({
@@ -137,21 +128,18 @@ function HeroSection() {
     });
 
     // 2. Match hotels
-    loadedHotels.forEach(hotel => {
-      const hName = hotel.propertyName || hotel.name || "";
-      const hLoc = hotel.city || hotel.location || "";
-      const hLocDetail = `${hotel.address || ""}, ${hLoc}`;
+    ALL_HOTELS.forEach(hotel => {
       if (
-        hName.toLowerCase().includes(q) ||
-        hLoc.toLowerCase().includes(q) ||
-        hLocDetail.toLowerCase().includes(q)
+        hotel.name.toLowerCase().includes(q) ||
+        hotel.location.toLowerCase().includes(q) ||
+        hotel.locationDetail.toLowerCase().includes(q)
       ) {
-        if (!results.some(r => r.type === 'hotel' && r.name === hName)) {
+        if (!results.some(r => r.type === 'hotel' && r.name === hotel.name)) {
           results.push({
             type: 'hotel',
-            name: hName,
-            description: `${hLocDetail}, Sri Lanka`,
-            fillValue: hName
+            name: hotel.name,
+            description: `${hotel.locationDetail}, Sri Lanka`,
+            fillValue: hotel.name
           });
         }
       }
@@ -160,7 +148,7 @@ function HeroSection() {
     return results.slice(0, 6);
   };
 
-  const searchResults = getSearchResults(destination);
+  const searchResults = getSearchResults(destination); // This uses ALL_HOTELS, which is imported but not used in the component itself.
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
@@ -579,86 +567,234 @@ function FeaturedHotels() {
   );
 }
 
-function BidInfoAnimation({ 
-  onDismiss, 
-  showAddBidButton = false, 
-  onBidClick 
-}: { 
-  onDismiss?: (e: React.MouseEvent) => void; 
-  showAddBidButton?: boolean; 
-  onBidClick?: () => void; 
+function BidInfoAnimation({
+  onDismiss,
+  showAddBidButton = false,
+  onBidClick,
+}: {
+  onDismiss?: (e: React.MouseEvent) => void;
+  showAddBidButton?: boolean;
+  onBidClick?: () => void;
 }) {
   const [activeStep, setActiveStep] = useState(0);
+
   useEffect(() => {
-    const interval = setInterval(() => { setActiveStep((prev) => (prev + 1) % 3); }, 2500);
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % 4);
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
+
   return (
-    <div className={cn(
-      "relative overflow-hidden group animate-in slide-in-from-top-4 fade-in duration-500 max-w-xl w-full text-left",
-      showAddBidButton 
-        ? "bg-transparent border-none p-0" 
-        : "border rounded-2xl p-4 mb-4 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
-    )}>
+    <div
+      className={cn(
+        "relative overflow-hidden group animate-in slide-in-from-top-4 fade-in duration-500 max-w-xl w-full text-left mx-auto",
+        showAddBidButton
+          ? "bg-transparent border-none p-0"
+          : "border rounded-2xl p-6 mb-4 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800"
+      )}
+    >
+      <style>{`
+        @keyframes searchOrbit {
+          0% { transform: translate(0, 0); }
+          25% { transform: translate(15px, -15px); }
+          50% { transform: translate(-15px, 15px); }
+          75% { transform: translate(-15px, -15px); }
+          100% { transform: translate(0, 0); }
+        }
+        .animate-search-move {
+          animation: searchOrbit 2s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+          50% { transform: scale(1.1); box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.6); }
+        }
+        .animate-winner-glow {
+          animation: pulseGlow 1.5s infinite;
+        }
+      `}</style>
+
       {onDismiss && (
         <div className="absolute top-0 right-0 p-2">
-          <button onClick={onDismiss} type="button" className="text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 transition-colors">
+          <button
+            onClick={onDismiss}
+            type="button"
+            className="text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
-      <div className="flex items-center gap-2 mb-6 justify-center">
-        <h3 className="font-bold text-emerald-800 dark:text-emerald-300">How Bidding Works</h3>
-      </div>
-      <div className="flex justify-between items-center mb-6 px-2">
-        <div className={cn("flex flex-col items-center transition-all duration-500", activeStep === 0 ? "scale-110 opacity-100" : "scale-90 opacity-50")}>
-          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-sm mb-2 transition-colors duration-500", activeStep === 0 ? "bg-emerald-600 text-white" : "bg-white dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400")}>
+
+      <div className="flex items-center gap-2 mb-8 justify-center" />
+
+
+      {/* MAIN ARENA (Increased height and margin to make room for bottom text) */}
+      <div className="flex justify-between items-center mb-16 px-4 relative h-36">
+
+        {/* LEFT NODE */}
+        <div
+          className={cn(
+            "flex flex-col items-center transition-all duration-500 z-10",
+            activeStep === 0 || activeStep === 3 ? "scale-110 opacity-100" : "scale-90 opacity-60"
+          )}
+        >
+          <div
+            className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center shadow-md mb-2 transition-colors duration-500",
+              activeStep === 0 || activeStep === 3
+                ? "bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-900/40"
+                : "bg-white dark:bg-emerald-900/50 text-emerald-600"
+            )}
+          >
             <Send className="w-5 h-5" />
           </div>
-          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Request</span>
+          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Request</span>
         </div>
-        <div className="flex-1 h-0.5 mx-2 bg-slate-200 dark:bg-slate-700 relative rounded-full overflow-hidden">
-          <div className={cn("absolute top-0 left-0 h-full bg-emerald-500 transition-all duration-1000", activeStep >= 1 ? "w-full" : "w-0")} />
+
+        {/* LEFT LINE */}
+        <div className="flex-1 h-0.5 mx-2 bg-slate-200 dark:bg-slate-700 relative rounded-full overflow-hidden self-center mb-6">
+          <div
+            className={cn(
+              "absolute top-0 left-0 h-full bg-emerald-500 transition-all duration-1000",
+              activeStep === 0 ? "w-full" : activeStep === 3 ? "w-0 transition-none" : "w-full"
+            )}
+          />
+          {activeStep === 3 && (
+            <div className="absolute top-0 right-0 h-full bg-amber-500 w-full animate-out slide-out-to-left duration-1000" />
+          )}
         </div>
-        <div className={cn("flex flex-col items-center transition-all duration-500", activeStep === 1 ? "scale-110 opacity-100" : "scale-90 opacity-50")}>
-          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-sm mb-2 transition-colors duration-500", activeStep === 1 ? "bg-emerald-600 text-white" : "bg-white dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400")}>
-            <BellRing className="w-5 h-5" />
+
+        {/* MIDDLE NODE */}
+        <div
+          className={cn(
+            "relative flex items-center justify-center transition-all duration-500 z-20 mb-6 mx-6",
+            activeStep === 1 || activeStep === 2 ? "scale-125" : "scale-100"
+          )}
+        >
+          <div
+            className={cn(
+              "w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors duration-500 z-10",
+              activeStep === 1
+                ? "bg-amber-500 text-white"
+                : activeStep === 2 || activeStep === 3
+                  ? "bg-emerald-600 text-white"
+                  : "bg-white dark:bg-emerald-900/50 text-emerald-600 border border-emerald-200"
+            )}
+          >
+            <Search className={cn("w-6 h-6", activeStep === 1 && "animate-search-move")} />
           </div>
-          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Offers</span>
+
+          {/* 4 HOTELS AROUND THE CENTER */}
+          {(activeStep === 1 || activeStep === 2) && (
+            <>
+              {/* Hotel 1: Top */}
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 scale-90 bg-white dark:bg-slate-800 p-1.5 rounded-lg shadow border border-slate-200">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                {activeStep === 2 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"><X className="w-2 h-2" /></span>
+                )}
+              </div>
+
+              {/* Hotel 2: Right (Winner) */}
+              <div
+                className={cn(
+                  "absolute -right-10 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 p-1.5 rounded-lg shadow border",
+                  activeStep === 2 ? "border-emerald-500 animate-winner-glow scale-110 z-30" : "border-slate-200 scale-90"
+                )}
+              >
+                <Building2 className={cn("w-5 h-5", activeStep === 2 ? "text-emerald-600" : "text-slate-400")} />
+                {activeStep === 2 && (
+                  <span className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5"><Check className="w-2 h-2" /></span>
+                )}
+              </div>
+
+              {/* Hotel 3: Bottom */}
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 scale-90 bg-white dark:bg-slate-800 p-1.5 rounded-lg shadow border border-slate-200">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                {activeStep === 2 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"><X className="w-2 h-2" /></span>
+                )}
+              </div>
+
+              {/* Hotel 4: Left */}
+              <div className="absolute -left-10 top-1/2 -translate-y-1/2 scale-90 bg-white dark:bg-slate-800 p-1.5 rounded-lg shadow border border-slate-200">
+                <Building2 className="w-5 h-5 text-slate-400" />
+                {activeStep === 2 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"><X className="w-2 h-2" /></span>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* FIXED STATUS TEXT (Moved safely below the bottom hotel icon) */}
+          <span className="absolute -bottom-22 text-[11px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap tracking-wider bg-slate-100 dark:bg-slate-800/60 px-2.5 py-0.5 rounded-full shadow-sm border border-slate-200/40">
+            {activeStep === 1 ? "Searching..." : activeStep === 2 ? "Match Found!" : "Bidding Engine"}
+          </span>
         </div>
-        <div className="flex-1 h-0.5 mx-2 bg-slate-200 dark:bg-slate-700 relative rounded-full overflow-hidden">
-          <div className={cn("absolute top-0 left-0 h-full bg-emerald-500 transition-all duration-1000", activeStep >= 2 ? "w-full" : "w-0")} />
+
+        {/* RIGHT LINE */}
+        <div className="flex-1 h-0.5 mx-2 bg-slate-200 dark:bg-slate-700 relative rounded-full overflow-hidden self-center mb-6">
+          <div
+            className={cn(
+              "absolute top-0 left-0 h-full bg-emerald-500 transition-all duration-1000",
+              activeStep === 3 ? "w-full" : "w-0"
+            )}
+          />
         </div>
-        <div className={cn("flex flex-col items-center transition-all duration-500", activeStep === 2 ? "scale-110 opacity-100" : "scale-90 opacity-50")}>
-          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shadow-sm mb-2 transition-colors duration-500", activeStep === 2 ? "bg-emerald-600 text-white" : "bg-white dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400")}>
+
+        {/* RIGHT NODE */}
+        <div
+          className={cn(
+            "flex flex-col items-center transition-all duration-500 z-10",
+            activeStep === 3 ? "scale-110 opacity-100" : "scale-90 opacity-50"
+          )}
+        >
+          <div
+            className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center shadow-md mb-2 transition-colors duration-500",
+              activeStep === 3
+                ? "bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-900/40"
+                : "bg-white dark:bg-emerald-900/50 text-emerald-600"
+            )}
+          >
             <CheckCircle className="w-5 h-5" />
           </div>
-          <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">Book</span>
+          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">Booked</span>
         </div>
+
       </div>
-      <div className="text-center h-12 flex flex-col justify-center overflow-hidden mb-2">
+
+      {/* DESCRIPTION TEXT */}
+      <div className="text-center h-14 flex flex-col justify-center overflow-hidden mb-2 px-4">
         {activeStep === 0 && (
           <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">1. Tell us your needs</p>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400">Set your budget and what you're looking for.</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">1. Request Dispatched</p>
+            <p className="text-[12px] text-slate-600 dark:text-slate-400">Your budget and requirements are being sent to our top-rated hotel partners.</p>
           </div>
         )}
         {activeStep === 1 && (
           <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">2. Hotels compete</p>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400">Our partners will send you their best custom offers.</p>
+            <p className="text-sm font-bold text-amber-600 dark:text-amber-400">2. Hotels Competing</p>
+            <p className="text-[12px] text-slate-600 dark:text-slate-400">Multiple hotels are currently matching your request with custom hidden deals.</p>
           </div>
         )}
         {activeStep === 2 && (
           <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">3. You choose the best</p>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400">Pick the offer you like most and enjoy your stay!</p>
+            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">3. Filtering Best Rate</p>
+            <p className="text-[12px] text-slate-600 dark:text-slate-400">The engine has successfully finalized the most optimal and lowest cost offer for you.</p>
+          </div>
+        )}
+        {activeStep === 3 && (
+          <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
+            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">4. Information Synced</p>
+            <p className="text-[12px] text-slate-600 dark:text-slate-400">Details successfully delivered back to you and locked in with the hotel!</p>
           </div>
         )}
       </div>
 
       {showAddBidButton && onBidClick && (
-        <div className="mt-4 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <button
             onClick={onBidClick}
             type="button"
@@ -877,11 +1013,19 @@ function PricingSection() {
     <section id="pricing">
       <div className="mb-12 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
-          <Crown className="w-3.5 h-3.5" /> Subscription Plans
+          <Crown className="w-3.5 h-3.5" /> Pricing Plans
         </div>
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Simple, Transparent Pricing</h2>
-        <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-          Choose the plan that fits your business. Every new account gets <span className="font-semibold text-violet-600 dark:text-violet-400">1 year of Premium free</span> on sign up.
+
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+          Simple, Transparent Pricing
+        </h2>
+
+        <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+          Every account starts with the Free plan, and your package automatically upgrades as your usage grows.
+        </p>
+
+        <p className="mt-3 text-sm font-medium text-violet-600 dark:text-violet-400">
+          Pricing is calculated on a per-usage basis.
         </p>
       </div>
 
@@ -964,19 +1108,19 @@ function PricingSection() {
                   ))}
                 </ul>
 
-                {/* CTA */}
+                {/* CTA
                 <Link
                   href="/dashboard"
                   className={`w-full py-3 rounded-xl font-bold text-sm text-center transition-all duration-200 active:scale-[0.98] inline-block ${styles.ctaBg}`}
                 >
                   {pkg.price === 0 ? 'Get Started Free' : `Get ${pkg.name}`}
-                </Link>
+                </Link> */}
 
-                {pkg.id !== 'free' && (
+                {/* {pkg.id !== 'free' && (
                   <p className="text-center text-[11px] text-slate-400 mt-3">
                     🎁 New users start with 1-year <strong className="text-violet-600 dark:text-violet-400">Premium free</strong>
                   </p>
-                )}
+                )} */}
               </div>
             </div>
           );
@@ -1065,9 +1209,6 @@ function PartnerBanner() {
 
 function FeaturedOffers() {
   const [offers, setOffers] = useState<any[]>([]);
-  const [hotels, setHotels] = useState<any[]>([]);
-  const [selectedOffer, setSelectedOffer] = useState<any>(null);
-  const [selectedHotel, setSelectedHotel] = useState<any>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -1079,7 +1220,7 @@ function FeaturedOffers() {
         if (offersRes.ok && hotelsRes.ok) {
           const offersData = await offersRes.json();
           const hotelsData = await hotelsRes.json();
-          setOffers(offersData.slice(0, 4));
+          setOffers(offersData.slice(0, 4)); // Limit to 4 for featured
           setHotels(hotelsData);
         }
       } catch (err) {
@@ -1088,6 +1229,8 @@ function FeaturedOffers() {
     }
     fetchData();
   }, []);
+
+  const [hotels, setHotels] = useState<any[]>([]); // Keep hotels state to find hotel for offer
 
   if (offers.length === 0) return null;
 
@@ -1102,13 +1245,21 @@ function FeaturedOffers() {
           const hotelName = hotel?.propertyName || "Verified Hotel";
           const offerImage = offer.imageUrl || offer.image || hotel?.imageUrl || hotel?.image || "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80";
 
+          const roomNameParam = offer.appliesTo === 'rooms' && offer.roomTypes?.length > 0
+            ? `&roomName=${encodeURIComponent(offer.roomTypes[0])}` // Take the first room type for scrolling
+            : '';
+
+          // Ensure hotelData always has an ID and name/location for slug generation.
+          // If 'hotel' is null, use offer.hotelId as the ID.
+          // The generateHotelSlug function (in utils.ts) is expected to handle this structure.
+          const hotelData = hotel || { id: offer.hotelId, name: 'Hotel', location: 'Sri Lanka' };
+          const hotelSlug = generateHotelSlug(hotelData);
+          const linkTo = `/hotel/${hotelSlug}?offerId=${offer._id}${roomNameParam}`;
+
           return (
-            <div
+            <Link
               key={offer._id}
-              onClick={() => {
-                setSelectedOffer(offer);
-                setSelectedHotel(hotel);
-              }}
+              href={linkTo}
               className="group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden text-left flex flex-col transition-all cursor-pointer"
             >
               <div className="relative h-40 overflow-hidden">
@@ -1124,11 +1275,10 @@ function FeaturedOffers() {
               <div className="p-4 flex-1 flex flex-col">
                 <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-2 group-hover:text-brand transition-colors line-clamp-2">{offer.title}</h4>
                 <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5" /> {offer.ends}</span>
-                  <span className="text-brand font-semibold">View Deal</span>
+                  <span className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5" /> Ends: {offer.ends}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -1137,14 +1287,6 @@ function FeaturedOffers() {
           <Ticket className="w-4 h-4 text-brand" /> View All Offers <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-
-      {selectedOffer && (
-        <OfferDetailsModal
-          offer={selectedOffer}
-          hotel={selectedHotel}
-          onClose={() => setSelectedOffer(null)}
-        />
-      )}
     </section>
   );
 }

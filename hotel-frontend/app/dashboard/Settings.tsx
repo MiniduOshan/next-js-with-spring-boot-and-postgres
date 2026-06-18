@@ -24,20 +24,14 @@ export default function Settings() {
     }, 1000);
   };
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const loadToast = toast.loading("Uploading image...");
-      try {
-        const { uploadImage } = await import("@/lib/imageUpload");
-        const { url } = await uploadImage(file);
-        updateProfile({ avatarUrl: url });
-        toast.dismiss(loadToast);
-        toast.success("Profile picture updated!");
-      } catch (error: any) {
-        toast.dismiss(loadToast);
-        toast.error(error.message || "Failed to upload image");
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateProfile({ avatarUrl: reader.result as string });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -71,10 +65,9 @@ export default function Settings() {
                   <div className="flex items-center gap-4">
                     <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 select-none">
                       <img
-                        src={user?.avatarUrl ? (user.avatarUrl.includes("supabase.co") && !user.avatarUrl.includes("_thumb.") && user.avatarUrl.lastIndexOf(".") > user.avatarUrl.lastIndexOf("/") ? user.avatarUrl.substring(0, user.avatarUrl.lastIndexOf(".")) + "_thumb" + user.avatarUrl.substring(user.avatarUrl.lastIndexOf(".")) : user.avatarUrl) : `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'User'}&backgroundColor=00a67e`}
+                        src={user?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'User'}&backgroundColor=00a67e`}
                         alt="Profile"
                         className="w-full h-full object-cover"
-                        loading="lazy"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || 'User')}&backgroundColor=00a67e`;
                         }}

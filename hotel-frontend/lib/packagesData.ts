@@ -99,6 +99,7 @@ export function getSystemPackages(): SystemPackage[] {
 
 /** Save admin edits to localStorage */
 export function saveSystemPackages(packages: SystemPackage[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(packages));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(packages));
+  }
 }

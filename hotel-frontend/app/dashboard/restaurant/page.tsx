@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UtensilsCrossed, Plus, Trash2 } from "lucide-react";
+import { UtensilsCrossed, Plus, Trash2, Building2 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 import { toast } from "sonner";
 
 function RestaurantMenuManagement() {
-  const { user, activeHotel } = useAuth();
+  const { user, activeHotel, refreshHotels } = useAuth();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [meals, setMeals] = useState<any[]>([]);
@@ -20,6 +20,9 @@ function RestaurantMenuManagement() {
   });
 
   const fetchProfile = async () => {
+    // Don't fetch if no hotel is active yet (prevents fetching wrong profile on refresh)
+    if (!activeHotel?._id) return;
+
     try {
       setLoading(true);
 
@@ -27,9 +30,7 @@ function RestaurantMenuManagement() {
         "X-Owner-Email": user?.email || "",
       };
 
-      if (activeHotel) {
-        headers["X-Hotel-Id"] = activeHotel._id;
-      }
+      headers["X-Hotel-Id"] = activeHotel._id;
 
       const res = await fetch("/api/hotel-profile", {
         headers,
@@ -50,6 +51,16 @@ function RestaurantMenuManagement() {
     fetchProfile();
   }, [user?.email, activeHotel?._id]);
 
+  // If no hotel is selected from the sidebar, show a friendly notice
+  if (!activeHotel) {
+    return (
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400 rounded-2xl p-8 text-center flex flex-col items-center gap-4">
+        <Building2 className="w-12 h-12 text-amber-500" />
+        <p className="font-bold">No hotel selected. Please select a property from the sidebar to manage its menu.</p>
+      </div>
+    );
+  }
+
   const handleSave = async (updatedMeals: any[]) => {
     setIsSaving(true);
 
@@ -59,9 +70,7 @@ function RestaurantMenuManagement() {
         "X-Owner-Email": user?.email || "",
       };
 
-      if (activeHotel) {
-        headers["X-Hotel-Id"] = activeHotel._id;
-      }
+      headers["X-Hotel-Id"] = activeHotel._id;
 
       const res = await fetch("/api/hotel-profile", {
         method: "PUT",
@@ -74,6 +83,7 @@ function RestaurantMenuManagement() {
       if (res.ok) {
         setMeals(updatedMeals);
         toast.success("Menu updated successfully");
+        await refreshHotels(); // Sync the global AuthContext state
       } else {
         toast.error("Failed to update menu");
       }

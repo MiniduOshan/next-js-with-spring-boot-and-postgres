@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthContext";
 import { CalendarRange, Building2, MapPin, Clock, DollarSign, BedDouble } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ALL_HOTELS } from "@/lib/hotelData";
 
 
 interface BookingItem {
@@ -25,6 +26,7 @@ interface Booking {
   amount: string;
   serviceCharge?: number;
   taxAmount?: number;
+  discountOffered?: string;
   createdAt: string;
 }
 
@@ -52,6 +54,10 @@ export default function MyBookings() {
           const hotelsData = await hotelsRes.json();
           const map: Record<string, string> = {};
           
+          ALL_HOTELS.forEach((h: any) => {
+            map[h.id.toString()] = h.name;
+          });
+
           hotelsData.forEach((h: any) => {
             map[h._id || h.id] = h.propertyName || h.name;
           });
@@ -173,6 +179,13 @@ export default function MyBookings() {
                   <p className="text-2xl font-black text-brand flex items-center gap-1">
                     <DollarSign className="w-5 h-5 text-brand" /> {booking.amount}
                   </p>
+                  {booking.discountOffered && (
+                    <div className="mt-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2 animate-in fade-in zoom-in-95">
+                      <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase">Special Discount Offered</p>
+                      <p className="text-sm font-black text-amber-600 dark:text-amber-300">-{booking.discountOffered}</p>
+                      <p className="text-[10px] text-amber-500 mt-0.5">Pay at hotel to claim</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -145,14 +145,16 @@ export function getCategories(): CategoryData[] {
 }
 
 export function saveCategories(categories: CategoryData[]) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(KEY_CATEGORIES, JSON.stringify(categories));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(KEY_CATEGORIES, JSON.stringify(categories));
+  }
 }
 
 export function getFilterGroups(): FilterGroup[] {
   if (typeof window === 'undefined') return DEFAULT_FILTER_GROUPS;
   const cached = localStorage.getItem(KEY_FILTER_GROUPS);
   if (!cached) {
+    // Check if there is data in the legacy KEY_FILTERS representation to migrate
     const legacyKey = 'yme_admin_filters';
     const legacyData = localStorage.getItem(legacyKey);
     if (legacyData) {
@@ -202,19 +204,13 @@ export function getFilterGroups(): FilterGroup[] {
 }
 
 export function saveFilterGroups(groups: FilterGroup[]) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(KEY_FILTER_GROUPS, JSON.stringify(groups));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(KEY_FILTER_GROUPS, JSON.stringify(groups));
+  }
 }
 
 // Keep legacy getFilters and saveFilters for backward compatibility
 export function getFilters(): FilterList {
-  if (typeof window === 'undefined') {
-    return {
-      locations: DEFAULT_FILTER_GROUPS.find(g => g.id === 'locations')?.items || [],
-      propertyTypes: DEFAULT_FILTER_GROUPS.find(g => g.id === 'propertyTypes')?.items || [],
-      amenities: DEFAULT_FILTER_GROUPS.find(g => g.id === 'amenities')?.items || []
-    };
-  }
   const groups = getFilterGroups();
   const locs = groups.find(g => g.id === 'locations')?.items || [];
   const types = groups.find(g => g.id === 'propertyTypes')?.items || [];
@@ -227,7 +223,6 @@ export function getFilters(): FilterList {
 }
 
 export function saveFilters(filters: FilterList) {
-  if (typeof window === 'undefined') return;
   const groups = getFilterGroups();
   const updated = groups.map(g => {
     if (g.id === 'locations') return { ...g, items: filters.locations };

@@ -5,7 +5,6 @@ import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { useAuth } from "@/components/AuthContext";
 import { toast } from 'sonner';
-import { uploadImage, getThumbnailUrl } from "@/lib/imageUpload";
 
 export default function Offers() {
   const { user, activeHotel } = useAuth();
@@ -14,7 +13,6 @@ export default function Offers() {
   const [offerToDelete, setOfferToDelete] = useState<string | null>(null);
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
 
   // Form State
   const [formTitle, setFormTitle] = useState("");
@@ -126,19 +124,16 @@ export default function Offers() {
     setIsModalOpen(true);
   };
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsUploading(true);
-      try {
-        const { url } = await uploadImage(file);
-        setFormImageUrl(url);
-        toast.success("Image uploaded successfully!");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to upload image.");
-      } finally {
-        setIsUploading(false);
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setFormImageUrl(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -269,16 +264,16 @@ export default function Offers() {
                   className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-brand bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                 />
               ) : (
-                 <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl px-3 py-4 cursor-pointer hover:border-brand transition-colors">
+                <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl px-3 py-4 cursor-pointer hover:border-brand transition-colors">
                   <Upload className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm text-slate-500">{isUploading ? "Uploading..." : "Click to upload offer image"}</span>
-                  <input type="file" onChange={handleFileChange} className="hidden" accept="image/*" disabled={isUploading} />
+                  <span className="text-sm text-slate-500">Click to upload offer image</span>
+                  <input type="file" onChange={handleFileChange} className="hidden" accept="image/*" />
                 </label>
               )}
 
               {formImageUrl && (
                 <div className="relative mt-2 aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm group">
-                  <img src={getThumbnailUrl(formImageUrl)} className="w-full h-full object-cover" alt="Offer preview" loading="lazy" />
+                  <img src={formImageUrl} className="w-full h-full object-cover" alt="Offer preview" />
                   <button
                     type="button"
                     onClick={() => setFormImageUrl("")}
@@ -442,7 +437,7 @@ export default function Offers() {
             <div key={o._id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex flex-col">
               <div className="relative h-32 bg-slate-100 dark:bg-slate-800">
                 {o.imageUrl || o.image ? (
-                  <img src={getThumbnailUrl(o.imageUrl || o.image)} alt={o.title} className="w-full h-full object-cover" loading="lazy" />
+                  <img src={o.imageUrl || o.image} alt={o.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                     <ImageIcon className="w-8 h-8" />

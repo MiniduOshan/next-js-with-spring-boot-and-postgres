@@ -3,17 +3,17 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useRouter, useParams, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";;
-import { Building2, Save, MapPin, Phone, Mail, Image as ImageIcon, Upload, Trash2, Edit, Check, Users, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Building2, Save, MapPin, Phone, Mail, Image as ImageIcon, Upload, Trash2, Edit, Check, Users, Eye, EyeOff, ChevronDown, Star, ExternalLink, Utensils, Mountain, TrainFront, Plane, PlusCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from "@/components/AuthContext";
 import { toast } from 'sonner';
-import { uploadImage, getThumbnailUrl } from "@/lib/imageUpload";
+import { generateHotelSlug } from "@/lib/utils";
 
 const AVAILABLE_HOTEL_AMENITIES = ["Free WiFi", "Swimming Pool", "Parking", "Restaurant", "Bar", "Spa", "Gym", "Room Service", "Airport Shuttle", "Beach Access"];
 
 export default function MyHotel() {
   const { user, activeRole, activeHotel, refreshHotels } = useAuth();
   const pathname = usePathname();
-  const location = { pathname, hash: typeof window !== 'undefined' ? window.location.hash : '' };;
+    const location = { pathname, hash: typeof window !== 'undefined' ? window.location.hash : '' };;
   const isStaffMode = location.hash === '#staff-management';
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,11 +32,20 @@ export default function MyHotel() {
   const [directionsLink, setDirectionsLink] = useState("");
   const [email, setEmail] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
   const [imageSourceMode, setImageSourceMode] = useState<'url' | 'file'>('url');
   const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const [areaInfo, setAreaInfo] = useState({
+    nearbyPlaces: [] as any[],
+    restaurants: [] as any[],
+    naturalBeauty: [] as any[],
+    publicTransit: [] as any[],
+    airports: [] as any[]
+  });
+  const [newAreaItem, setNewAreaItem] = useState({ category: 'nearbyPlaces', name: '', distance: '' });
   const [amenities, setAmenities] = useState<string[]>([]);
+  const [meals, setMeals] = useState<any[]>([]);
   const [customAmenity, setCustomAmenity] = useState("");
+  const [stars, setStars] = useState<number>(0);
   const [serviceCharge, setServiceCharge] = useState<number>(0);
   const [taxPercentage, setTaxPercentage] = useState<number>(0);
 
@@ -97,11 +106,20 @@ export default function MyHotel() {
       setWhatsapp(activeHotel.whatsapp || "");
       setDirectionsLink(activeHotel.directionsLink || "");
       setEmail(activeHotel.email || "");
+      setAreaInfo(activeHotel.areaInfo || {
+        nearbyPlaces: [],
+        restaurants: [],
+        naturalBeauty: [],
+        publicTransit: [],
+        airports: []
+      });
       setImages(activeHotel.images?.length > 0 ? activeHotel.images : (activeHotel.imageUrl ? [activeHotel.imageUrl] : []));
       setAmenities(activeHotel.amenities || []);
       setRules(activeHotel.rules || []);
       setPolicies(activeHotel.policies || []);
       setStaff(activeHotel.staff || []);
+      setMeals(activeHotel.meals || []);
+      setStars(activeHotel.stars || 0);
       setServiceCharge(activeHotel.serviceCharge || 0);
       setTaxPercentage(activeHotel.taxPercentage || 0);
     } else if (isCreatingNew) {
@@ -119,7 +137,16 @@ export default function MyHotel() {
       setAmenities([]);
       setRules([]);
       setPolicies([]);
+      setAreaInfo({
+        nearbyPlaces: [],
+        restaurants: [],
+        naturalBeauty: [],
+        publicTransit: [],
+        airports: []
+      });
       setStaff([]);
+      setMeals([]);
+      setStars(0);
       setServiceCharge(0);
       setTaxPercentage(0);
     }
@@ -143,9 +170,12 @@ export default function MyHotel() {
       directionsLink !== (activeHotel.directionsLink || "") ||
       email !== (activeHotel.email || "") ||
       JSON.stringify(images) !== JSON.stringify(initialImages) ||
+      JSON.stringify(areaInfo) !== JSON.stringify(activeHotel.areaInfo || {}) ||
+      JSON.stringify(meals) !== JSON.stringify(activeHotel.meals || []) ||
       JSON.stringify(amenities) !== JSON.stringify(activeHotel.amenities || []) ||
       JSON.stringify(rules) !== JSON.stringify(activeHotel.rules || []) ||
       JSON.stringify(policies) !== JSON.stringify(activeHotel.policies || []) ||
+      stars !== (activeHotel.stars || 0) ||
       serviceCharge !== (activeHotel.serviceCharge || 0) ||
       taxPercentage !== (activeHotel.taxPercentage || 0)
     );
@@ -187,19 +217,17 @@ export default function MyHotel() {
     }
   }, [isStaffMode, isCreatingNew]);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsUploading(true);
-      try {
-        const { url } = await uploadImage(file);
-        setImages([...images, url]);
-        toast.success("Image uploaded successfully! Click 'Save Changes' to apply.");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to upload image.");
-      } finally {
-        setIsUploading(false);
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setImages([...images, reader.result]);
+          toast.info("Image added. Click 'Save Changes' to apply.");
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -214,6 +242,22 @@ export default function MyHotel() {
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
     toast.info("Image removed. Click 'Save Changes' to apply.");
+  };
+
+  const handleAddAreaItem = (category: string) => {
+    if (!newAreaItem.name.trim() || !newAreaItem.distance.trim()) return;
+    setAreaInfo(prev => ({
+      ...prev,
+      [category]: [...(prev[category as keyof typeof areaInfo] || []), { name: newAreaItem.name, distance: newAreaItem.distance }]
+    }));
+    setNewAreaItem({ ...newAreaItem, name: '', distance: '' });
+  };
+
+  const handleRemoveAreaItem = (category: string, index: number) => {
+    setAreaInfo(prev => ({
+      ...prev,
+      [category]: prev[category as keyof typeof areaInfo].filter((_, i) => i !== index)
+    }));
   };
 
   const handleSave = async (e: FormEvent) => {
@@ -234,8 +278,11 @@ export default function MyHotel() {
         images,
         imageUrl: images.length > 0 ? images[0] : "",
         amenities,
+        areaInfo,
         rules,
         policies,
+        meals,
+        stars,
         serviceCharge,
         taxPercentage,
       };
@@ -542,6 +589,15 @@ export default function MyHotel() {
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
             )}
+            {activeHotel && (
+              <Link
+                href={`/hotel/${generateHotelSlug(activeHotel)}`}
+                target="_blank"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-1.5 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm shadow-sm"
+              >
+                <ExternalLink className="w-4 h-4" /> View Live
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -579,6 +635,25 @@ export default function MyHotel() {
                     <option value="Villa">Villa</option>
                     <option value="Boutique">Boutique</option>
                   </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Star Rating</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={!isEditing && !isCreatingNew}
+                      onClick={() => setStars(s)}
+                      className={`p-2 rounded-lg transition-all ${stars >= s ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'}`}
+                    >
+                      <Star className={`w-6 h-6 ${stars >= s ? 'fill-amber-400' : ''}`} />
+                    </button>
+                  ))}
+                  {stars > 0 && (
+                    <button type="button" disabled={!isEditing && !isCreatingNew} onClick={() => setStars(0)} className="text-xs text-slate-400 hover:text-slate-600 underline">Clear</button>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
@@ -770,6 +845,27 @@ export default function MyHotel() {
             </div>
           </div>
 
+          {/* Hotel Area Info */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl text-emerald-600">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Hotel Area Info</h3>
+                  <p className="text-xs text-slate-500">Attractions, transit and restaurants</p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/area-info"
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+              >
+                Manage Area Details <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
           {/* Rules & Policies */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
             <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-6">Rules & Policies</h3>
@@ -892,6 +988,19 @@ export default function MyHotel() {
               Manage Rooms
             </Link>
           </div>
+          {/* Manage Meals Shortcut */}
+          <div className="bg-gradient-to-br from-amber-500/10 to-yellow-500/10 dark:from-amber-500/20 dark:to-yellow-500/20 rounded-2xl p-4 shadow-sm border border-amber-500/20">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Utensils className="w-4 h-4 text-amber-500" />
+              Restaurant Menu
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Update your restaurant menu items and meal packages.
+            </p>
+            <Link href="/dashboard/restaurant" className="inline-flex items-center justify-center w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-amber-600 font-medium px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors shadow-sm">
+              Manage Menu
+            </Link>
+          </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
             <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-brand" />
@@ -912,17 +1021,17 @@ export default function MyHotel() {
                 ) : (
                   <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl px-3 py-4 cursor-pointer hover:border-brand">
                     <Upload className="w-4 h-4 text-slate-400" />
-                    <span className="text-sm text-slate-500">{isUploading ? "Uploading..." : "Choose file to add"}</span>
-                    <input type="file" onChange={handleFileChange} className="hidden text-xs" accept="image/*" disabled={isUploading} />
+                    <span className="text-sm text-slate-500">Choose file to add</span>
+                    <input type="file" onChange={handleFileChange} className="hidden text-xs" accept="image/*" />
                   </label>
                 )}
               </div>
 
               {images.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3 mt-4">
-                   {images.map((img, idx) => (
+                  {images.map((img, idx) => (
                     <div key={idx} className="relative group aspect-video rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                      <img src={getThumbnailUrl(img)} className="w-full h-full object-cover" alt={`Preview ${idx + 1}`} loading="lazy" referrerPolicy="no-referrer" />
+                      <img src={img} className="w-full h-full object-cover" alt={`Preview ${idx + 1}`} referrerPolicy="no-referrer" />
                       {(isEditing || isCreatingNew) && <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button type="button" onClick={() => handleRemoveImage(idx)} className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
                           <Trash2 className="w-4 h-4" />

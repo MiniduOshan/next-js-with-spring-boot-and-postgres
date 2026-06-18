@@ -83,6 +83,7 @@ public class HotelService {
         existing.setRules(updated.getRules());
         existing.setPolicies(updated.getPolicies());
         existing.setImages(updated.getImages());
+        existing.setAreaInfo(updated.getAreaInfo());
         return hotelRepository.save(existing);
     }
 

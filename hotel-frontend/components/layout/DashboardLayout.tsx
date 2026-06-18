@@ -31,7 +31,8 @@ import {
   ArrowLeft,
   MessageSquare,
   Newspaper,
-  UtensilsCrossed
+  UtensilsCrossed,
+  MapPin
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '../../lib/utils';
@@ -119,6 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           { name: 'Packages', path: '/dashboard/packages', icon: Package },
           { name: 'Restaurant', path: '/dashboard/restaurant', icon: UtensilsCrossed },
           { name: 'Offers', path: '/dashboard/offers', icon: Tags },
+          { name: 'Hotel Area Info', path: '/dashboard/area-info', icon: MapPin },
           { name: 'Guest Requests', path: '/dashboard/guest-requests', icon: MessageSquare },
         ] : []),
         { name: 'Bookings', path: '/dashboard/bookings', icon: CalendarCheck },
@@ -163,10 +165,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 );
               });
             } else if (user.isPartner) {
-              filtered = data.filter(n => n.type === 'booking_status' || n.type === 'review_reply');
-            } else {
-              // Normal user (traveler)
-              filtered = data.filter(n => n.type === 'booking_status' || n.type === 'review_reply');
+              filtered = data.filter(n => n.type === 'booking_status' || n.type === 'review_reply' || n.type === 'offer');
+            } else { // Normal user (traveler)
+              filtered = data.filter(n => n.type === 'booking_status' || n.type === 'review_reply' || n.type === 'offer' || n.type === 'info');
             }
           }
 

@@ -57,7 +57,7 @@ export default function NotificationsPage() {
                     if (isUserAdmin) {
                         filtered = filtered.filter(n => {
                             const titleLower = n.title.toLowerCase();
-                            const messageLower = n.message.toLowerCase();
+                            const messageLower = n.message?.toLowerCase() || ''; // Handle potential null/undefined message
                             return (
                                 titleLower.includes('registration') ||
                                 titleLower.includes('register') ||
@@ -68,16 +68,16 @@ export default function NotificationsPage() {
                             );
                         });
                     } else if (user.isPartner) {
-                        filtered = filtered.filter(n => n.type === 'booking_status' || n.type === 'review_reply');
+                        filtered = filtered.filter(n => n.type === 'booking_status' || n.type === 'review_reply' || n.type === 'offer' || n.type === 'info');
                     } else {
                         // Normal user (traveler)
-                        filtered = filtered.filter(n => n.type === 'booking_status' || n.type === 'review_reply');
+                        filtered = filtered.filter(n => n.type === 'booking_status' || n.type === 'review_reply' || n.type === 'offer' || n.type === 'info');
                     }
                 }
                 setNotifications(filtered);
                 setLoading(false);
             })
-            .catch(err => {
+            .catch((err: Error) => {
                 console.error(err);
                 setLoading(false);
             });
@@ -101,6 +101,7 @@ export default function NotificationsPage() {
         return [
             { id: 'all', label: 'All', icon: Filter },
             { id: 'booking_status', label: 'My Bookings', icon: Calendar },
+            { id: 'offer', label: 'Offers', icon: Tag },
             { id: 'review_reply', label: 'Host Replies', icon: MessageSquare },
         ];
     };
@@ -118,7 +119,7 @@ export default function NotificationsPage() {
                 method: 'PUT'
             });
             if (!res.ok) throw new Error('Failed to mark notification as read');
-        } catch (err) {
+        } catch (err: Error) {
             console.error(err);
             toast.error('Could not mark notification as read');
             fetchNotifications();
@@ -139,7 +140,7 @@ export default function NotificationsPage() {
                 }
             });
             if (!res.ok) throw new Error('Failed to mark all as read');
-        } catch (err) {
+        } catch (err: Error) {
             console.error(err);
             toast.error('Failed to mark all as read');
             fetchNotifications();
@@ -156,7 +157,7 @@ export default function NotificationsPage() {
                 method: 'DELETE'
             });
             if (!res.ok) throw new Error('Failed to delete notification');
-        } catch (err) {
+        } catch (err: Error) {
             console.error(err);
             toast.error('Failed to delete notification');
             fetchNotifications();
@@ -258,8 +259,8 @@ export default function NotificationsPage() {
                             key={f.id}
                             onClick={() => setActiveFilter(f.id)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${activeFilter === f.id
-                                    ? 'bg-brand text-white shadow-sm shadow-brand/10'
-                                    : 'bg-slate-50 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                ? 'bg-brand text-white shadow-sm shadow-brand/10'
+                                : 'bg-slate-50 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                         >
                             <f.icon className="w-3.5 h-3.5" />

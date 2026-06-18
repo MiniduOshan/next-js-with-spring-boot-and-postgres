@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, DollarSign, TrendingUp, Users, Plus, Star, X, Building2, MapPin, Settings, Trash2, ArrowLeft } from 'lucide-react';
+import { CalendarCheck, DollarSign, TrendingUp, Users, Plus, Star, X, Building2, MapPin, Settings, Trash2, ArrowLeft, Map as MapIcon } from 'lucide-react';
 import { useRouter, useParams, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";;
 import { useAuth } from "@/components/AuthContext";
@@ -85,7 +85,7 @@ export default function DashboardHome() {
         if (Array.isArray(data)) setDbReviews(data);
       })
       .catch(console.error);
-      
+
     // Partner Profile
     if (user?.isPartner) {
       fetch("/api/partner-profile/me", { headers: emailHeader })
@@ -329,7 +329,7 @@ export default function DashboardHome() {
                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1"><MapPin className="w-3 h-3" /> {hotel.city}</p>
                   </div>
                 </div>
-                {user?.email === hotel.owner && (
+                {(user?.email === hotel.owner || user?.isAdmin) && (
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={(e) => {
@@ -414,14 +414,26 @@ export default function DashboardHome() {
           {/* Quick Actions & Info */}
           {activeRole !== 'cashier' && (
             <div className="space-y-4">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 text-center">
-                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Plus className="w-8 h-8 text-brand" />
+              <div className="grid grid-cols-1 gap-4">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 text-center">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Plus className="w-8 h-8 text-brand" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2 text-slate-900 dark:text-white">Create New Offer</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Boost your bookings by creating a limited time flash offer.</p>
+                  <Link href="/dashboard/offers" className="w-full inline-block bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl font-semibold transition-colors text-sm">
+                    Create Offer
+                  </Link>
                 </div>
-                <h3 className="font-bold text-lg mb-2 text-slate-900 dark:text-white">Create New Offer</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Boost your bookings by creating a limited time flash offer.</p>
-                <Link href="/dashboard/offers" className="w-full inline-block bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl font-semibold transition-colors">
-                  Create Offer
+
+                <Link href="/dashboard/area-info" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4 hover:shadow-md transition-all group">
+                  <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                    <MapIcon className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-slate-900 dark:text-white">Hotel Area Info</h3>
+                    <p className="text-xs text-slate-500">Nearby attractions & landmarks</p>
+                  </div>
                 </Link>
               </div>
 
