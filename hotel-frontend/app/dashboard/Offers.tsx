@@ -45,12 +45,22 @@ export default function Offers() {
 
       if (offersRes.ok) {
         const data = await offersRes.json();
-        setOffers(data);
+        const mapped = Array.isArray(data) ? data.map((o: any) => ({
+          ...o,
+          _id: o.id || o._id,
+          id: o.id || o._id
+        })) : [];
+        setOffers(mapped);
       }
 
       if (roomsRes.ok) {
         const data = await roomsRes.json();
-        setRooms(data);
+        const mapped = Array.isArray(data) ? data.map((r: any) => ({
+          ...r,
+          _id: r.id || r._id,
+          id: r.id || r._id
+        })) : [];
+        setRooms(mapped);
       }
 
       if (profileRes.ok) {

@@ -2,6 +2,7 @@ package com.wyme.hotail.modules.hotel.controller;
 
 import com.wyme.hotail.modules.hotel.entity.HotelProfile;
 import com.wyme.hotail.modules.hotel.entity.Room;
+import com.wyme.hotail.modules.hotel.entity.StaffMember;
 import com.wyme.hotail.modules.hotel.service.HotelService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +58,45 @@ public class HotelController {
     @GetMapping("/hotels/{id}/rooms")
     public ResponseEntity<List<Room>> getHotelRooms(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(hotelService.getRooms(id.toString(), null));
+    }
+
+    @GetMapping("/hotel-profile/{id}/staff")
+    public ResponseEntity<?> getHotelStaff(@PathVariable("id") UUID id) {
+        HotelProfile hotel = hotelService.getHotelById(id);
+        return ResponseEntity.ok(Map.of("staff", hotel.getStaff()));
+    }
+
+    @PutMapping("/hotel-profile/{id}/staff")
+    public ResponseEntity<?> updateHotelStaff(
+            @PathVariable("id") UUID id,
+            @RequestBody Map<String, Object> body) {
+        
+        String action = (String) body.get("action");
+        String email = (String) body.get("email");
+        
+        HotelProfile hotel = hotelService.getHotelById(id);
+        
+        if ("add".equalsIgnoreCase(action)) {
+            String role = (String) body.get("role");
+            String password = (String) body.get("password");
+            
+            boolean exists = hotel.getStaff().stream()
+                    .anyMatch(s -> s.getEmail().equalsIgnoreCase(email));
+            if (!exists) {
+                StaffMember staff = new StaffMember();
+                staff.setHotelProfile(hotel);
+                staff.setEmail(email);
+                staff.setRole(role);
+                staff.setPassword(password);
+                staff.setName(email.split("@")[0].replace(".", " "));
+                hotel.getStaff().add(staff);
+            }
+        } else if ("remove".equalsIgnoreCase(action)) {
+            hotel.getStaff().removeIf(s -> s.getEmail().equalsIgnoreCase(email));
+        }
+        
+        HotelProfile updated = hotelService.saveHotelProfile(hotel);
+        return ResponseEntity.ok(Map.of("staff", updated.getStaff()));
     }
 
     @PostMapping("/staff-login")

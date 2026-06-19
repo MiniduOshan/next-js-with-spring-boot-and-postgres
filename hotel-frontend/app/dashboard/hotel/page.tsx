@@ -13,8 +13,28 @@ const AVAILABLE_HOTEL_AMENITIES = ["Free WiFi", "Swimming Pool", "Parking", "Res
 function MyHotel() {
   const { user, activeRole, activeHotel, refreshHotels } = useAuth();
   const pathname = usePathname();
-    const location = { pathname, hash: typeof window !== 'undefined' ? window.location.hash : '' };;
-  const isStaffMode = location.hash === '#staff-management';
+  const [currentHash, setCurrentHash] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentHash(window.location.hash);
+      const handleHashChange = () => {
+        setCurrentHash(window.location.hash);
+      };
+      window.addEventListener("hashchange", handleHashChange);
+      const interval = setInterval(() => {
+        if (window.location.hash !== currentHash) {
+          setCurrentHash(window.location.hash);
+        }
+      }, 100);
+      return () => {
+        window.removeEventListener("hashchange", handleHashChange);
+        clearInterval(interval);
+      };
+    }
+  }, [currentHash, pathname]);
+
+  const isStaffMode = currentHash === '#staff-management';
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);

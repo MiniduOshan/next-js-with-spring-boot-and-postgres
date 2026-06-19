@@ -47,7 +47,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialView, setAuthInitialView] = useState<"signin" | "signup">("signin");
   const pathname = usePathname();
-  const location = { pathname };;
+  const [currentHash, setCurrentHash] = useState("");
+
+  useEffect(() => {
+    setCurrentHash(window.location.hash);
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash);
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    const interval = setInterval(() => {
+      if (window.location.hash !== currentHash) {
+        setCurrentHash(window.location.hash);
+      }
+    }, 100);
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+      clearInterval(interval);
+    };
+  }, [currentHash, pathname]);
+
+  const location = { pathname, hash: currentHash };
   const router = useRouter();
   const navigate = (path) => router.push(path);;
 
