@@ -248,18 +248,21 @@ function HotelDetails() {
         if (!data.error) {
           setHotel(data);
           setIsVerified(data.verified);
-          const hotelId = data._id;
+          const hotelId = data.id || data._id;
 
           Promise.all([
             fetch(`/api/hotels/${hotelId}/rooms`).then(res => res.json()).catch(() => []),
             fetch(`/api/hotels/${hotelId}/reviews`).then(res => res.json()).catch(() => []),
             fetch(`/api/offers`, { headers: { "X-Hotel-Id": hotelId } }).then(res => res.json()).catch(() => [])
           ]).then(([rooms, revs, offers]) => {
-            if (rooms && !rooms.error) {
+            if (Array.isArray(rooms)) {
               setHotelRooms(rooms);
               setFilteredRooms(rooms);
+            } else {
+              setHotelRooms([]);
+              setFilteredRooms([]);
             }
-            if (revs && !revs.error) {
+            if (Array.isArray(revs)) {
               setReviews(revs.map((r: any) => ({
                 id: r._id,
                 name: r.guest,
@@ -269,9 +272,14 @@ function HotelDetails() {
                 title: 'Feedback',
                 content: r.text
               })));
+            } else {
+              setReviews([]);
             }
-            if (offers && !offers.error) {
+
+            if (Array.isArray(offers)) {
               setHotelOffers(offers);
+            } else {
+              setHotelOffers([]);
             }
             setIsLoading(false);
           });
