@@ -10,7 +10,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import { toast } from 'sonner';
 import { getCategories } from "@/lib/adminData";
-import { ALL_HOTELS } from "@/lib/hotelData"; // Keep this for getSearchResults
+// No ALL_HOTELS mock data
 import { getSystemPackages } from "@/lib/packagesData";
 import { useAuth } from "@/components/AuthContext";
 
@@ -93,6 +93,16 @@ function HeroSection() {
     "98 Acres Resort",
   ];
 
+  const [dbHotels, setDbHotels] = useState<any[]>([]);
+  useEffect(() => {
+    fetch('/api/hotels')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setDbHotels(data);
+      })
+      .catch(() => {});
+  }, []);
+
   const getSearchResults = (query: string) => {
     const q = query.toLowerCase().trim();
     if (!q) {
@@ -109,7 +119,7 @@ function HeroSection() {
     const results: { type: 'location' | 'hotel'; name: string; description: string; fillValue: string }[] = [];
 
     // 1. Match cities/districts
-    const cities = Array.from(new Set(ALL_HOTELS.map(h => h.location).filter(Boolean)));
+    const cities = Array.from(new Set(dbHotels.map(h => h.city || h.location).filter(Boolean)));
     cities.forEach(city => {
       if (city.toLowerCase().includes(q)) {
         results.push({
@@ -128,18 +138,21 @@ function HeroSection() {
     });
 
     // 2. Match hotels
-    ALL_HOTELS.forEach(hotel => {
+    dbHotels.forEach(hotel => {
+      const hName = hotel.propertyName || hotel.name || "";
+      const hLoc = hotel.city || hotel.location || "";
+      const hAddr = hotel.address || hotel.locationDetail || "";
       if (
-        hotel.name.toLowerCase().includes(q) ||
-        hotel.location.toLowerCase().includes(q) ||
-        hotel.locationDetail.toLowerCase().includes(q)
+        hName.toLowerCase().includes(q) ||
+        hLoc.toLowerCase().includes(q) ||
+        hAddr.toLowerCase().includes(q)
       ) {
-        if (!results.some(r => r.type === 'hotel' && r.name === hotel.name)) {
+        if (!results.some(r => r.type === 'hotel' && r.name === hName)) {
           results.push({
             type: 'hotel',
-            name: hotel.name,
-            description: `${hotel.locationDetail}, Sri Lanka`,
-            fillValue: hotel.name
+            name: hName,
+            description: `${hAddr || hLoc}, Sri Lanka`,
+            fillValue: hName
           });
         }
       }
@@ -148,7 +161,7 @@ function HeroSection() {
     return results.slice(0, 6);
   };
 
-  const searchResults = getSearchResults(destination); // This uses ALL_HOTELS, which is imported but not used in the component itself.
+  const searchResults = getSearchResults(destination);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
@@ -511,11 +524,11 @@ function FeaturedHotels() {
     <section>
       <SectionHeader badge="Curated Selection" title="Verified and trusted properties" subtitle="Explore our handpicked selection of top-rated hotels curated for excellence." />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {hotels.map(h => {
+        {hotels.map((h, index) => {
           // Map database fields to UI component requirements
           const hotelData = {
             ...h,
-            id: h._id,
+            id: h.id || h._id,
             name: h.propertyName || h.name,
             location: h.city || h.location,
             image: h.imageUrl || h.image || "https://images.unsplash.com/photo-1590490360182-c33d57733427",
@@ -525,7 +538,7 @@ function FeaturedHotels() {
           };
 
           return (
-            <Link href={`/hotel/${generateHotelSlug(hotelData)}`} key={hotelData.id} className="group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden text-left flex flex-col transition-all">
+            <Link href={`/hotel/${generateHotelSlug(hotelData)}`} key={hotelData.id || index} className="group bg-white dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden text-left flex flex-col transition-all">
               <div className="relative h-48 overflow-hidden">
                 <img src={hotelData.image} alt={hotelData.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-3 left-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2.5 py-1 rounded-full text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">

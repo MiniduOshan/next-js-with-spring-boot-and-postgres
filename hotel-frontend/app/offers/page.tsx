@@ -108,7 +108,7 @@ function PublicOffers() {
               // If 'hotel' is null, use offer.hotelId as the ID.
               const hotelDataForSlug = hotel ? { id: hotel._id, name: hotel.propertyName, location: hotel.city } : { id: offer.hotelId, name: 'Unknown Hotel', location: 'Sri Lanka' };
               const hotelSlug = generateHotelSlug(hotelDataForSlug);
-              const offerImage = offer.imageUrl || offer.image || hotel?.imageUrl || hotel?.image || "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&q=80";
+              const offerImage = offer.imageUrl || offer.image || hotel?.imageUrl || "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&q=80";
 
               const roomNameParam = offer.appliesTo === 'rooms' && offer.roomTypes?.length > 0
                 ? `&roomName=${encodeURIComponent(offer.roomTypes[0])}` // Take the first room type for scrolling

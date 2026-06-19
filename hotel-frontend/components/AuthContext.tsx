@@ -164,8 +164,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch("/api/my-hotels", { headers: { "x-owner-email": user.email } });
       if (!res.ok) return;
-      const hotels = await res.json();
-      if (Array.isArray(hotels)) {
+      const rawHotels = await res.json();
+      if (Array.isArray(rawHotels)) {
+        const hotels = rawHotels.map((h: any) => ({
+          ...h,
+          _id: h.id || h._id,
+          id: h.id || h._id
+        }));
         setAccessibleHotels(hotels);
         const storedHotelId = localStorage.getItem("yme_active_hotel_id");
 

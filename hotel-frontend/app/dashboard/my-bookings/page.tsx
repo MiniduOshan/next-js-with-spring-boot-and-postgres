@@ -5,7 +5,7 @@ import { useAuth } from "@/components/AuthContext";
 import { CalendarRange, Building2, MapPin, Clock, DollarSign, BedDouble } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ALL_HOTELS } from "@/lib/hotelData";
+// No ALL_HOTELS mock data
 
 
 interface BookingItem {
@@ -54,9 +54,7 @@ function MyBookings() {
           const hotelsData = await hotelsRes.json();
           const map: Record<string, string> = {};
           
-          ALL_HOTELS.forEach((h: any) => {
-            map[h.id.toString()] = h.name;
-          });
+          // No ALL_HOTELS fallback
 
           hotelsData.forEach((h: any) => {
             map[h._id || h.id] = h.propertyName || h.name;

@@ -6,7 +6,7 @@ import Link from "next/link";;
 import { MapPin, Star, Share, Heart, CheckCircle, Wifi, Car, Coffee, Tv, Wind, Check, X, Calendar, Users, FileText, CheckCircle2, ChevronLeft, ChevronRight, Phone, MessageCircle, Navigation, Plus, Minus, ChevronDown, ChevronUp, Bath, Bed, Trees, Activity, Clock, Shield, Globe, Info, Waves, Utensils, Mountain, Sparkles, TrainFront, Plane, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { ALL_HOTELS as MOCK_HOTELS, MOCK_ROOMS } from "@/lib/hotelData";
+// No mock data imports
 import { cn, generateHotelSlug } from "@/lib/utils";
 import { useSavedHotels } from "@/lib/useSavedHotels";
 import { useAuth } from "@/components/AuthContext";
@@ -240,19 +240,7 @@ function HotelDetails() {
     if (!slug) return;
     setIsLoading(true);
 
-    const mock = MOCK_HOTELS.find(h => generateHotelSlug(h) === slug);
-    if (mock) {
-      setHotel(mock);
-      setIsVerified(true);
-      setHotelRooms(MOCK_ROOMS);
-      setFilteredRooms(MOCK_ROOMS);
-      setReviews([
-        { id: 1, name: "Saman Kumara", country: "Sri Lanka", rating: 5, date: "Jun 01, 2026", title: "Exceptional Service", content: "The service was world class. Highly recommended!" },
-        { id: 2, name: "Emma Watson", country: "UK", rating: 4, date: "May 25, 2026", title: "Beautiful Views", content: "Had a great time. The views are incredible." }
-      ]);
-      setIsLoading(false);
-      return;
-    }
+
 
     fetch(`/api/hotels/byslug/${slug}`)
       .then(res => res.json())

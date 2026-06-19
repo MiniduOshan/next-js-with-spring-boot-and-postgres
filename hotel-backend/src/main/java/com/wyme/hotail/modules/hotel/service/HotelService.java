@@ -27,7 +27,8 @@ public class HotelService {
     }
 
     public List<HotelProfile> getAllHotels() {
-        return hotelRepository.findAll();
+        String tenantId = TenantContext.getCurrentTenant();
+        return hotelRepository.findAllByTenantId(tenantId);
     }
 
     public HotelProfile getHotelById(UUID id) {

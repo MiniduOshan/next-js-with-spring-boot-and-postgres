@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Hotel } from './adminData'; // Assuming Hotel type is exported or we can just use any
 
 export interface SavedHotel {
   id: string;

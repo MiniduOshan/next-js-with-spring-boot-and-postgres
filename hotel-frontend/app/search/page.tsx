@@ -72,7 +72,7 @@ function SearchResults() {
       .then(res => res.json())
       .then(data => {
         const mapped: Hotel[] = data.map((h: any) => ({
-          id: h._id,
+          id: h.id || h._id,
           name: h.propertyName || "",
           location: h.city || "",
           locationDetail: `${h.address || ""}, ${h.city || ""}`,
@@ -637,8 +637,8 @@ function SearchResults() {
               </div>
             ) : (
               <div className={cn("pb-20 px-1", viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6" : "space-y-6")}>
-                {sortedHotels.map((hotel) => (
-                  <HotelListingCard key={hotel.id} hotel={hotel} viewMode={viewMode as any} isSaved={isSaved(hotel.id)} onSave={() => saveHotel(hotel, generateHotelSlug(hotel))} />
+                {sortedHotels.map((hotel, index) => (
+                  <HotelListingCard key={hotel.id || index} hotel={hotel} viewMode={viewMode as any} isSaved={isSaved(hotel.id)} onSave={() => saveHotel(hotel, generateHotelSlug(hotel))} />
                 ))}
               </div>
             )
@@ -726,7 +726,7 @@ function HotelListingCard({ hotel, viewMode = 'list', isSaved, onSave }: { hotel
   const isSpecial = hotel.isSpecial;
 
   return (
-    <Link to={`/hotel/${generateHotelSlug(hotel)}`} className={cn("block group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex outline-none focus:outline-none", viewMode === 'grid' ? "flex-col h-full" : "flex-col sm:flex-row")}>
+    <Link href={`/hotel/${generateHotelSlug(hotel)}`} className={cn("block group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex outline-none focus:outline-none", viewMode === 'grid' ? "flex-col h-full" : "flex-col sm:flex-row")}>
       <div className={cn("relative shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-800", viewMode === 'grid' ? "w-full h-40" : "w-full sm:w-64 sm:self-stretch")}>
         <img
           src={hotel.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945"}
