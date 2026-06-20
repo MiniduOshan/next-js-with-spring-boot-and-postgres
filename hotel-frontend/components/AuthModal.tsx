@@ -189,17 +189,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
     }
   };
 
-  const autofillDemoUser = (role: "user" | "partner" | "admin") => {
-    if (role === "partner") {
-      setEmail("partner@yme.lk");
-    } else if (role === "admin") {
-      setEmail("admin@yme.lk");
-    } else {
-      setEmail("user@yme.lk");
-    }
-    setPassword("password");
-    setError(null);
-  };
+
 
   return createPortal(
     <AnimatePresence>
@@ -570,38 +560,6 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                     Continue with Google
                   </button>
 
-
-                  {/* Quick login aids */}
-                  {view === "signin" && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                      <span className="block text-[10px] font-semibold text-slate-400 dark:text-slate-500 text-center uppercase tracking-wider mb-2">
-                        Demo Testing Accounts
-                      </span>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => autofillDemoUser("partner")}
-                          className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-[10px] font-medium text-slate-650 dark:text-slate-300 text-center transition-colors"
-                        >
-                          Hotel Owner
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => autofillDemoUser("user")}
-                          className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-[10px] font-medium text-slate-650 dark:text-slate-300 text-center transition-colors"
-                        >
-                          Traveler
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => autofillDemoUser("admin")}
-                          className="p-2 border border-teal-200 dark:border-teal-900/50 rounded-xl bg-teal-50/20 dark:bg-teal-950/10 hover:bg-teal-50 dark:hover:bg-teal-950/30 text-[10px] font-semibold text-teal-600 dark:text-teal-400 text-center transition-colors"
-                        >
-                          Admin Panel
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Toggle Mode */}
                   <div className="pt-4 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80">

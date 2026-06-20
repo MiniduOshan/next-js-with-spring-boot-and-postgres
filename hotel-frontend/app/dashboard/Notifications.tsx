@@ -53,7 +53,7 @@ export default function NotificationsPage() {
             .then((data: NotificationItem[]) => {
                 let filtered = data || [];
                 if (user) {
-                    const isUserAdmin = user.isAdmin || user.email?.toLowerCase() === 'admin@yme.lk';
+                    const isUserAdmin = user.isAdmin;
                     if (isUserAdmin) {
                         filtered = filtered.filter(n => {
                             const titleLower = n.title.toLowerCase();
@@ -84,7 +84,7 @@ export default function NotificationsPage() {
     };
 
     const getFilterTabs = () => {
-        const isUserAdmin = user?.isAdmin || user?.email?.toLowerCase() === 'admin@yme.lk';
+        const isUserAdmin = user?.isAdmin;
         if (isUserAdmin) {
             return [
                 { id: 'all', label: 'All', icon: Filter },

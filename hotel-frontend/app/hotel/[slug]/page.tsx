@@ -408,7 +408,7 @@ function HotelDetails() {
   const handleOpenBooking = (roomName: string, price: number) => {
     const matchedRoom = hotelRooms.find(r => r.name === roomName);
     const matchedPkg = hotel?.packages?.find((p: any) => p.name === roomName);
-    const roomOwner = matchedRoom ? matchedRoom.owner : (matchedPkg ? (hotel?.owner || 'partner@yme.lk') : (hotel?.owner || 'partner@yme.lk'));
+    const roomOwner = matchedRoom ? matchedRoom.owner : (matchedPkg ? (hotel?.owner || '') : (hotel?.owner || ''));
 
     // Get the maximum available quantity for this room type
     // Priority: 1. Server-calculated availability for selected dates, 2. Base room qty from DB
@@ -471,7 +471,7 @@ function HotelDetails() {
     try {
       const basePrice = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       const combinedRoomNames = cart.map(item => `${item.name} (x${item.quantity})`).join(", ");
-      const mainOwner = cart[0]?.owner || hotel?.owner || "partner@yme.lk";
+      const mainOwner = cart[0]?.owner || hotel?.owner || "";
 
       const discount = usePoints && user?.points ? user.points * getPointValueLKR() : 0;
 
@@ -540,7 +540,7 @@ function HotelDetails() {
           score: newReview.rating,
           date: new Date().toLocaleDateString(),
           text: newReview.content,
-          owner: hotel?.owner || "partner@yme.lk"
+          owner: hotel?.owner || ""
         })
       });
 
@@ -869,15 +869,17 @@ function HotelDetails() {
           </section>
 
           <section>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-6">
-              Room Overview
-            </h2>
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-              {/* TABLE */}
-              <div className="col-span-1 lg:col-span-8 xl:col-span-9 order-2 lg:order-1">
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+              {/* LEFT CONTENT: ROOMS & PACKAGES */}
+              <div className="col-span-1 lg:col-span-8 xl:col-span-9 order-2 lg:order-1 space-y-12">
+                
+                {/* ROOM OVERVIEW */}
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-6">
+                    Room Overview
+                  </h2>
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
                   <table className="w-full text-sm">
                     <thead className="bg-brand text-white whitespace-nowrap">
                       <tr>
@@ -1068,7 +1070,7 @@ function HotelDetails() {
                                         owner:
                                           room.owner ||
                                           hotel?.owner ||
-                                          "partner@yme.lk"
+                                          ""
                                       }
                                     ];
                                   });
@@ -1105,6 +1107,56 @@ function HotelDetails() {
                     </tbody>
                   </table>
                 </div>
+                </div>
+
+                {/* PACKAGES OVERVIEW MOVED HERE */}
+                {hotel?.packages && hotel.packages.length > 0 && (
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-6">
+                      Packages Overview
+                    </h2>
+                    <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                      <table className="w-full text-sm">
+                        <thead className="bg-brand text-white whitespace-nowrap">
+                          <tr>
+                            <th className="px-4 py-3 text-left min-w-[150px]">Package Name</th>
+                            <th className="px-4 py-3 text-left">Description</th>
+                            <th className="px-4 py-3 text-left min-w-[180px]">Features</th>
+                            <th className="px-4 py-3 text-center min-w-[120px]">Price</th>
+                            <th className="px-4 py-3 text-center">Select Package</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {hotel.packages.map((pkg: any, idx: number) => (
+                            <tr key={idx} className="border-b border-slate-200 align-top">
+                              <td className="p-4">
+                                <h3 className="font-bold text-blue-700 text-lg">{pkg.name}</h3>
+                              </td>
+                              <td className="p-4">
+                                <p className="text-slate-600 dark:text-slate-400">{pkg.description}</p>
+                              </td>
+                              <td className="p-4">
+                                <ul className="space-y-1.5">
+                                  {pkg.features?.map((feature: string, j: number) => (
+                                    <li key={j} className="flex items-center gap-2 text-emerald-600 font-bold">
+                                      <CheckCircle2 className="w-3.5 h-3.5" /> {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </td>
+                              <td className="p-4 text-center">
+                                <div className="text-xl font-bold">LKR {Number(pkg.price).toLocaleString()}</div>
+                              </td>
+                              <td className="p-4 text-center">
+                                <button onClick={() => handleOpenBooking(pkg.name, pkg.price)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md active:scale-95">Select Package</button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* BOOK YOUR STAY PANEL */}
@@ -1353,57 +1405,7 @@ function HotelDetails() {
             </div>
           </section>
 
-          {hotel?.packages && hotel.packages.length > 0 && (
-            <section>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-6">
-                Packages Overview
-              </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="col-span-1 lg:col-span-12">
-                  <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-sm">
-                      <thead className="bg-brand text-white whitespace-nowrap">
-                        <tr>
-                          <th className="px-4 py-3 text-left min-w-[150px]">Package Name</th>
-                          <th className="px-4 py-3 text-left">Description</th>
-                          <th className="px-4 py-3 text-left min-w-[180px]">Features</th>
-                          <th className="px-4 py-3 text-center min-w-[120px]">Price</th>
-                          <th className="px-4 py-3 text-center">Select Package</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {hotel.packages.map((pkg: any, idx: number) => (
-                          <tr key={idx} className="border-b border-slate-200 align-top">
-                            <td className="p-4">
-                              <h3 className="font-bold text-blue-700 text-lg">{pkg.name}</h3>
-                            </td>
-                            <td className="p-4">
-                              <p className="text-slate-600 dark:text-slate-400">{pkg.description}</p>
-                            </td>
-                            <td className="p-4">
-                              <ul className="space-y-1.5">
-                                {pkg.features?.map((feature: string, j: number) => (
-                                  <li key={j} className="flex items-center gap-2 text-emerald-600 font-bold">
-                                    <CheckCircle2 className="w-3.5 h-3.5" /> {feature}
-                                  </li>
-                                ))}
-                              </ul>
-                            </td>
-                            <td className="p-4 text-center">
-                              <div className="text-xl font-bold">LKR {Number(pkg.price).toLocaleString()}</div>
-                            </td>
-                            <td className="p-4 text-center">
-                              <button onClick={() => handleOpenBooking(pkg.name, pkg.price)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-md active:scale-95">Select Package</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
+
 
           {/* Hotel Area Info Section */}
           <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 sm:p-12 shadow-sm">

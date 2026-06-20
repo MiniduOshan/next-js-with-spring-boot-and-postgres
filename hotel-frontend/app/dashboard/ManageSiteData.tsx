@@ -65,7 +65,7 @@ const ICON_PRESETS = [
 
 export default function ManageSiteData() {
     const { user } = useAuth();
-    const isAdmin = user?.isAdmin || user?.email?.toLowerCase() === 'admin@yme.lk';
+    const isAdmin = user?.isAdmin;
 
     // State management
     const [activeTab, setActiveTab] = useState<'categories' | 'filters'>('categories');

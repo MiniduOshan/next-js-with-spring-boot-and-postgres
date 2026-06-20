@@ -86,7 +86,7 @@ export default function OfferDetailsModal({ offer, hotel, onClose }: OfferDetail
           serviceCharge: 0,
           taxAmount: 0,
           status: "Pending",
-          owner: hotel?.owner || offer.owner || "partner@yme.lk"
+          owner: hotel?.owner || offer.owner || ""
         })
       });
 
