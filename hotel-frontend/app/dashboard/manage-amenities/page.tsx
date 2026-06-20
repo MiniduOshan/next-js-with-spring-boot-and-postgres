@@ -158,7 +158,7 @@ function ManageAmenities() {
                                     {catTitle}
                                 </h3>
                             </div>
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {allItemsForCat.map((item, j) => {
                                     const isSelected = selectedItems.includes(item);
                                     return (
@@ -172,7 +172,7 @@ function ManageAmenities() {
                                         </label>
                                     );
                                 })}
-                                <div className="pt-2 flex gap-2">
+                                <div className="col-span-1 sm:col-span-2 pt-2 flex gap-2">
                                     <input 
                                         type="text" 
                                         placeholder="Add custom item..." 
