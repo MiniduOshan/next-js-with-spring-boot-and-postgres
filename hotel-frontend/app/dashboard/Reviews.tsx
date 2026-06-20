@@ -13,6 +13,7 @@ export default function Reviews() {
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
   const [reviewsList, setReviewsList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('All');
 
   const fetchReviews = async () => {
     try {
@@ -132,7 +133,20 @@ export default function Reviews() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Filter System */}
+      <div className="flex gap-2 pb-2 overflow-x-auto border-b border-slate-100 dark:border-slate-800">
+        {['All', 'Needs Reply', 'Has Reply', '5 Star', '1-4 Star'].map(f => (
+          <button 
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-t-lg text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${filter === f ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+          >
+            {f === 'All' ? 'All Reviews' : f}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-1 space-y-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm text-center">
             <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Overall Rating</h3>
@@ -157,10 +171,6 @@ export default function Reviews() {
         </div>
 
         <div className="md:col-span-3 space-y-3">
-          <div className="flex gap-2">
-            <button className="bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-medium">All Reviews</button>
-          </div>
-
           <div className="space-y-3">
             {loading ? (
               <div className="text-center py-12 text-slate-500">Loading feedback...</div>
@@ -168,8 +178,25 @@ export default function Reviews() {
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-12 text-center shadow-sm">
                 <p className="text-slate-500 dark:text-slate-400">No reviews found.</p>
               </div>
-            ) : reviewsList.map(r => (
-              <div key={r._id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm flex flex-col gap-3 group">
+            ) : (() => {
+              const filteredReviews = reviewsList.filter(r => {
+                if (filter === 'Has Reply') return !!r.reply;
+                if (filter === 'Needs Reply') return !r.reply;
+                if (filter === '5 Star') return Number(r.score) === 5;
+                if (filter === '1-4 Star') return Number(r.score) < 5;
+                return true;
+              });
+
+              if (filteredReviews.length === 0) {
+                return (
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-12 text-center shadow-sm">
+                    <p className="text-slate-500 dark:text-slate-400">No reviews match the selected filter.</p>
+                  </div>
+                );
+              }
+
+              return filteredReviews.map(r => (
+                <div key={r._id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm flex flex-col gap-3 group">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -238,7 +265,8 @@ export default function Reviews() {
                   </button>
                 )}
               </div>
-            ))}
+              ));
+            })()}
           </div>
         </div>
       </div>

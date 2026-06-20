@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { MapPin, Utensils, Mountain, TrainFront, Plane, Plus, Trash2, Save, Building2 } from 'lucide-react';
+import { MapPin, Utensils, Mountain, TrainFront, Plane, Plus, Trash2, Save, Building2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { useAuth } from '@/components/AuthContext';
 import { toast } from 'sonner';
 
@@ -110,6 +111,9 @@ function AreaInfo() {
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
+                    <Link href="/dashboard/hotel" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-emerald-600 transition-colors mb-4">
+                        <ArrowLeft className="w-4 h-4" /> Back to Hotel
+                    </Link>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Hotel Area Info</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Manage attractions and landmarks near {activeHotel.propertyName}.</p>
                 </div>
@@ -125,7 +129,7 @@ function AreaInfo() {
                             <cat.icon className="w-5 h-5 text-brand" />
                             <h3 className="font-bold text-slate-800 dark:text-slate-200">{cat.label}</h3>
                         </div>
-                        <div className="space-y-2 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                             {(areaInfo[cat.id as keyof typeof areaInfo] || []).map((item, idx) => (
                                 <div key={idx} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800 group">
                                     <div className="min-w-0">

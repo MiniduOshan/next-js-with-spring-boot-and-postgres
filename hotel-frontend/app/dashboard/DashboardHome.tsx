@@ -406,16 +406,6 @@ export default function DashboardHome() {
                     Create Offer
                   </Link>
                 </div>
-
-                <Link href="/dashboard/area-info" className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex items-center gap-4 hover:shadow-md transition-all group">
-                  <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-                    <MapIcon className="w-6 h-6" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-slate-900 dark:text-white">Hotel Area Info</h3>
-                    <p className="text-xs text-slate-500">Nearby attractions & landmarks</p>
-                  </div>
-                </Link>
               </div>
 
               <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-5">

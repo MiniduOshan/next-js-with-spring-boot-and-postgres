@@ -15,6 +15,9 @@ public class SecurityConstants {
         "/api/loyalty/activities",
         "/api/loyalty/leaderboard",
         "/api/open-bid-requests",
+        "/api/bid-requests/**",
+        "/api/bid-offers/**",
+        "/api/partner-offers",
         "/ws/**"
     };
 

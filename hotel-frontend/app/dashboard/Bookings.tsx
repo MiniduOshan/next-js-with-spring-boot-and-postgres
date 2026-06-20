@@ -402,34 +402,33 @@ export default function Bookings() {
             <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Booking Details</h3>
               <button onClick={() => { setSelectedBookingDetails(null); setShowDiscountInput(false); setDiscountAmount(''); }} className="text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-5 space-y-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-500">Guest Name</p>
-                <p className="font-semibold text-slate-900 dark:text-white text-lg">{selectedBookingDetails.guest}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-slate-500">Check In</p>
-                  <p className="font-semibold text-slate-900 dark:text-white">{format(selectedBookingDetails.start, 'MMM dd, yyyy')}</p>
+            <div className="p-5 space-y-4">
+              <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Guest Name</p>
+                  <p className="text-base font-bold text-slate-900 dark:text-white">{selectedBookingDetails.guest}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-slate-500">Check Out</p>
-                  <p className="font-semibold text-slate-900 dark:text-white">{format(selectedBookingDetails.end, 'MMM dd, yyyy')}</p>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-500">Room</p>
-                <p className="font-semibold text-slate-900 dark:text-white">{selectedBookingDetails.room}</p>
-              </div>
-              <div className="space-y-1 flex items-center gap-3">
-                <p className="text-sm font-medium text-slate-500">Status</p>
-                <span className={`px-3 py-1 ${statuses.find(s => s.name === selectedBookingDetails.statusName)?.color} text-xs font-bold rounded-full`}>
+                <span className={`px-3 py-1 ${statuses.find(s => s.name === selectedBookingDetails.statusName)?.color} text-[10px] font-bold rounded-full uppercase tracking-wider`}>
                   {selectedBookingDetails.statusName}
                 </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check In</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{format(selectedBookingDetails.start, 'MMM dd, yyyy')}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Check Out</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{format(selectedBookingDetails.end, 'MMM dd, yyyy')}</p>
+                </div>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Room</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">{selectedBookingDetails.room}</p>
               </div>
 
               {showDiscountInput && (
@@ -461,26 +460,26 @@ export default function Bookings() {
               )}
             </div>
 
-            <div className="p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 flex-wrap">
-              <button onClick={() => { setSelectedBookingDetails(null); setShowDiscountInput(false); }} className="px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-colors mr-auto">Close</button>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 flex-wrap">
+              <button onClick={() => { setSelectedBookingDetails(null); setShowDiscountInput(false); }} className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-colors mr-auto">Close</button>
 
               {(selectedBookingDetails.statusName === 'Pending' || selectedBookingDetails.statusName === 'Confirmed') && activeRole !== 'cashier' && (
                 <button
                   onClick={() => handleStatusChange(selectedBookingDetails.id, 'Cancelled')}
-                  className="px-4 py-2 rounded-xl font-medium text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
                 >
                   Cancel Booking
                 </button>
               )}
 
               {selectedBookingDetails.statusName === 'Confirmed' && activeRole !== 'cashier' && !showDiscountInput && (
-                <button onClick={() => setShowDiscountInput(true)} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-colors">Offer Discount</button>
+                <button onClick={() => setShowDiscountInput(true)} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">Offer Discount</button>
               )}
 
               {selectedBookingDetails.statusName === 'Pending' && (
                 <button
                   onClick={() => handleStatusChange(selectedBookingDetails.id, 'Confirmed')}
-                  className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                  className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   Confirm Booking
                 </button>
@@ -489,7 +488,7 @@ export default function Bookings() {
               {selectedBookingDetails.statusName === 'Confirmed' && (
                 <button
                   onClick={() => handleStatusChange(selectedBookingDetails.id, 'Checked In')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   Mark as Checked In
                 </button>
@@ -498,7 +497,7 @@ export default function Bookings() {
               {selectedBookingDetails.statusName === 'Checked In' && (
                 <button
                   onClick={() => handleStatusChange(selectedBookingDetails.id, 'Checked Out')}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   Mark as Checked Out
                 </button>

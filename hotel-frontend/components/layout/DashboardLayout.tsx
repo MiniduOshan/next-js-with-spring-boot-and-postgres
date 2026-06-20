@@ -126,28 +126,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ]
     }] : []),
     // හෝටලයක් තෝරා ඇති විට අදාළ ව්‍යාපාරික මෙනු පෙන්වීම
-    ...(activeHotel && activeRole ? [{
-      category: 'Business',
-      items: [
-        ...(activeRole === 'owner' ? [
-          { name: 'My Hotel', path: '/dashboard/hotel', icon: Building2 },
+    ...(activeHotel && activeRole ? [
+      {
+        category: 'Business',
+        items: [
           { name: 'Hotel Dashboard', path: '/dashboard', icon: BarChart3 },
-          { name: 'Manage Members', path: '/dashboard/hotel#staff-management', icon: Users },
-        ] : []),
-        ...(activeRole !== 'cashier' ? [
-          { name: 'Rooms', path: '/dashboard/rooms', icon: DoorOpen },
-          { name: 'Packages', path: '/dashboard/packages', icon: Package },
-          { name: 'Restaurant', path: '/dashboard/restaurant', icon: UtensilsCrossed },
-          { name: 'Offers', path: '/dashboard/offers', icon: Tags },
-          { name: 'Hotel Area Info', path: '/dashboard/area-info', icon: MapPin },
-          { name: 'Guest Requests', path: '/dashboard/guest-requests', icon: MessageSquare },
-        ] : []),
-        { name: 'Bookings', path: '/dashboard/bookings', icon: CalendarCheck },
-        ...(activeRole !== 'cashier' ? [
+          ...(activeRole === 'owner' ? [
+            { name: 'My Hotel', path: '/dashboard/hotel', icon: Building2 },
+          ] : []),
+          { name: 'Bookings', path: '/dashboard/bookings', icon: CalendarCheck },
+          ...(activeRole !== 'cashier' ? [
+            { name: 'Rooms', path: '/dashboard/rooms', icon: DoorOpen },
+            { name: 'Packages', path: '/dashboard/packages', icon: Package },
+            { name: 'Restaurant', path: '/dashboard/restaurant', icon: UtensilsCrossed },
+            { name: 'Offers', path: '/dashboard/offers', icon: Tags },
+            { name: 'Guest Bids', path: '/dashboard/guest-requests', icon: MessageSquare },
+          ] : []),
+        ]
+      },
+      ...(activeRole !== 'cashier' ? [{
+        category: 'Management',
+        items: [
+          ...(activeRole === 'owner' ? [
+            { name: 'Manage Members', path: '/dashboard/hotel#staff-management', icon: Users },
+          ] : []),
           { name: 'Reviews', path: '/dashboard/reviews', icon: Star },
-        ] : []),
-      ]
-    }] : [])
+        ]
+      }] : [])
+    ] : [])
   ];
 
   const navGroups = activeHotel ? partnerNavGroups : (user?.isAdmin ? adminNavGroups : ((user?.isPartner || user?.isStaff || activeRole) ? partnerNavGroups : travelerNavGroups));

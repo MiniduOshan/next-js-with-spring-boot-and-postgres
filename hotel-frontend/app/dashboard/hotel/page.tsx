@@ -865,47 +865,7 @@ function MyHotel() {
             </div>
           </div>
 
-          {/* Hotel Area Info */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl text-emerald-600">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Hotel Area Info</h3>
-                  <p className="text-xs text-slate-500">Attractions, transit and restaurants</p>
-                </div>
-              </div>
-              <Link
-                href="/dashboard/area-info"
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
-              >
-                Manage Area Details <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
 
-          {/* Detailed Facilities & Amenities */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl text-emerald-600">
-                  <Star className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Detailed Facilities & Amenities</h3>
-                  <p className="text-xs text-slate-500">Manage categories like Bathroom, Bedroom, View, etc.</p>
-                </div>
-              </div>
-              <Link
-                href="/dashboard/manage-amenities"
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
-              >
-                Manage Amenities <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
 
           {/* Rules & Policies */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
@@ -1087,6 +1047,48 @@ function MyHotel() {
                   No images provided
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Hotel Area Info */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl text-emerald-600">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Hotel Area Info</h3>
+                  <p className="text-xs text-slate-500">Attractions, transit and restaurants</p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/area-info"
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+              >
+                Manage Area Details <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Detailed Facilities & Amenities */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl text-emerald-600">
+                  <Star className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Detailed Facilities & Amenities</h3>
+                  <p className="text-xs text-slate-500">Manage categories like Bathroom, Bedroom, View, etc.</p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/manage-amenities"
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+              >
+                Manage Amenities <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
 

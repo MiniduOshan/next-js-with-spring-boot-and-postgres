@@ -1,5 +1,6 @@
 package com.wyme.hotail.shared.kernel;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", updatable = false, nullable = false)
+    @JsonProperty("_id")
     private UUID id;
 
     @CreationTimestamp

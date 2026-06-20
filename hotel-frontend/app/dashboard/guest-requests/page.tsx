@@ -80,7 +80,9 @@ function PartnerGuestRequests() {
   const fetchMyOffers = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/partner-offers");
+      const res = await fetch("/api/partner-offers", {
+        headers: { "X-Owner-Email": user?.email || "" }
+      });
       if (res.ok) {
         const data = await res.json();
         setMyOffers(data);
