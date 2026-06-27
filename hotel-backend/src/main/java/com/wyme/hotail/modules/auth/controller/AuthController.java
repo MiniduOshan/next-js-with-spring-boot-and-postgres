@@ -7,6 +7,7 @@ import com.wyme.hotail.modules.auth.repository.RefreshTokenRepository;
 import com.wyme.hotail.modules.auth.repository.UserAccountRepository;
 import com.wyme.hotail.modules.hotel.entity.HotelProfile;
 import com.wyme.hotail.modules.hotel.service.HotelService;
+import com.wyme.hotail.modules.auth.service.EmailService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,16 +30,19 @@ public class AuthController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final HotelService hotelService;
+    private final EmailService emailService;
 
     public AuthController(
             UserAccountRepository userAccountRepository,
             RefreshTokenRepository refreshTokenRepository,
             JwtTokenProvider jwtTokenProvider,
-            HotelService hotelService) {
+            HotelService hotelService,
+            EmailService emailService) {
         this.userAccountRepository = userAccountRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.hotelService = hotelService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/signup")
@@ -79,6 +83,7 @@ public class AuthController {
         String code = String.format("%06d", new Random().nextInt(1000000));
         user.setVerificationCode(code);
         System.out.println("VERIFICATION CODE FOR EMAIL " + normalizedEmail + ": " + code);
+        emailService.sendVerificationCode(normalizedEmail, code);
 
         if (user.getIsPartner()) {
             Map<String, String> hotelDetails = (Map<String, String>) body.get("hotelDetails");
@@ -161,6 +166,7 @@ public class AuthController {
         userAccountRepository.save(user);
 
         System.out.println("PASSWORD RESET CODE FOR EMAIL " + normalizedEmail + ": " + code);
+        emailService.sendPasswordResetCode(normalizedEmail, code);
 
         return ResponseEntity.ok(Map.of(
                 "success", true,

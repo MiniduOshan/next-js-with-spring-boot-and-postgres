@@ -15,6 +15,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, initialView = "signin" }: AuthModalProps) {
   const { login, signup, verifyEmail, googleLogin, forgotPassword, resetPassword } = useAuth();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [view, setView] = useState<"signin" | "signup" | "verify" | "forgot" | "reset">(initialView);
   const [email, setEmail] = useState("");
 
@@ -34,6 +35,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
   const [isSuccess, setIsSuccess] = useState(false);
 
   React.useEffect(() => {
+    setMounted(true);
     if (isOpen) {
       setView(initialView);
       setError(null);
@@ -75,7 +77,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
     }
   });
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
