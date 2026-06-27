@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,10 +34,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <AuthProvider>
-            <Toaster position="top-right" richColors />
-            {children}
-          </AuthProvider>
+          <GoogleOAuthProvider clientId="964613445186-iaf6eq59laivhkrnjf50p7t87soishdt.apps.googleusercontent.com">
+            <AuthProvider>
+              <Toaster position="top-right" richColors />
+              {children}
+            </AuthProvider>
+          </GoogleOAuthProvider>
         </ThemeProvider>
       </body>
     </html>

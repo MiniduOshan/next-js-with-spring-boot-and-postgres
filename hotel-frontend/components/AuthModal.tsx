@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Mail, Lock, User, Eye, EyeOff, ShieldCheck, Heart, Building2, Check, AlertCircle, Key } from "lucide-react";
 import { useAuth } from "./AuthContext";
+import { useGoogleLogin } from "@react-oauth/google";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -47,6 +48,32 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
       setIsSuccess(false);
     }
   }, [isOpen, initialView]);
+
+  const googleLoginAction = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError(null);
+      setIsSubmitting(true);
+      try {
+        const res = await googleLogin({ token: tokenResponse.access_token, isPartner });
+        if (res.success) {
+          setIsSuccess(true);
+          setTimeout(() => {
+            onClose();
+            router.push("/dashboard");
+          }, 1000);
+        } else {
+          setError(res.error || "Google Sign-In failed.");
+        }
+      } catch (err) {
+        setError("Google Login failed.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    onError: () => {
+      setError("Google Login failed.");
+    }
+  });
 
   if (!isOpen) return null;
 
@@ -159,34 +186,11 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
   };
 
 
-  const handleGoogleLogin = async (partnerChoice: boolean) => {
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      // Simulate Google identity provider response
-      const randomId = Math.random().toString(36).substring(2, 7);
-      const googleUser = {
-        email: `${partnerChoice ? 'partner' : 'traveler'}-${randomId}@gmail.com`,
-        name: partnerChoice ? `Google Partner ${randomId.toUpperCase()}` : `Google Traveler ${randomId.toUpperCase()}`,
-        avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${randomId}`,
-        isPartner: partnerChoice
-      };
 
-      const res = await googleLogin(googleUser);
-      if (res.success) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          onClose();
-          router.push("/dashboard");
-        }, 1000);
-      } else {
-        setError(res.error || "Google Sign-In failed.");
-      }
-    } catch (err) {
-      setError("Google Login failed.");
-    } finally {
-      setIsSubmitting(false);
-    }
+
+  const handleGoogleLogin = (partnerChoice: boolean) => {
+    setIsPartner(partnerChoice);
+    googleLoginAction();
   };
 
 

@@ -284,14 +284,31 @@ public class AuthController {
     @PostMapping("/google")
     @Transactional
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, Object> body, HttpServletResponse response) {
-        String email = (String) body.get("email");
-        String name = (String) body.get("name");
-        String avatarUrl = (String) body.get("avatarUrl");
+        String token = (String) body.get("token");
         Boolean isPartner = (Boolean) body.get("isPartner");
 
-        if (email == null || email.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email is required from Google account"));
+        if (token == null || token.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Token is required from Google account"));
         }
+
+        Map<String, Object> userInfo;
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            String url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token;
+            ResponseEntity<Map> googleResponse = restTemplate.getForEntity(url, Map.class);
+            userInfo = googleResponse.getBody();
+            
+            if (userInfo == null || !userInfo.containsKey("email")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Failed to retrieve user info from Google"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Google token"));
+        }
+
+        String email = (String) userInfo.get("email");
+        String name = (String) userInfo.get("name");
+        String avatarUrl = (String) userInfo.get("picture");
 
         String normalizedEmail = email.trim().toLowerCase();
 

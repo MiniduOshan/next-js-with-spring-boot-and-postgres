@@ -37,7 +37,7 @@ interface AuthContextType {
   verifyEmail: (email: string, code: string) => Promise<{ success: boolean; error?: string }>;
   forgotPassword: (email: string) => Promise<{ success: boolean; error?: string; debugResetCode?: string }>;
   resetPassword: (email: string, code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  googleLogin: (googlePayload: { email: string; name: string; avatarUrl?: string; isPartner?: boolean }) => Promise<{ success: boolean; error?: string; user?: User }>;
+  googleLogin: (googlePayload: { token: string; isPartner?: boolean }) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => Promise<void>;
 
   updateProfile: (updatedData: Partial<User>) => void;
@@ -271,7 +271,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
 
-  const googleLogin = async (googlePayload: { email: string; name: string; avatarUrl?: string; isPartner?: boolean }): Promise<{ success: boolean; error?: string; user?: User }> => {
+  const googleLogin = async (googlePayload: { token: string; isPartner?: boolean }): Promise<{ success: boolean; error?: string; user?: User }> => {
     try {
       const res = await baseClient.post("/api/auth/google", googlePayload);
       if (res.data && res.data.success) {
